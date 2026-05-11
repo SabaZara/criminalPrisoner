@@ -246,51 +246,54 @@
    widens into a pool at door-level. It rotates left/right (sweep) and
    locks on a single door when the cop checks.
    We rotate the whole .spotlight-stage on its top-center pivot. */
+/* Beam now points UP from a pivot near the bottom of the yard toward the doors:
+   wide at the top (on the wall), narrow at the bottom (light source).
+   .spotlight-stage is anchored bottom-center, pivots from its bottom point. */
 .spotlight-stage {
   position: absolute;
-  top: 4%;
+  bottom: 18%;
   left: 50%;
-  width: 22%;
-  height: 32%;          /* short — only reaches down to door height, not to the dirt */
-  margin-left: -11%;
-  transform-origin: 50% 0%;
+  width: 26%;
+  height: 78%;
+  margin-left: -13%;
+  transform-origin: 50% 100%; /* pivot at the bottom-center (the "lamp" point) */
   pointer-events: none;
   z-index: 3;
   transition: transform 0.7s cubic-bezier(0.6, 0, 0.3, 1);
   will-change: transform;
+  --beam-color-r: 255;
+  --beam-color-g: 255;
+  --beam-color-b: 220;
 }
 .spotlight-beam {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background:
     linear-gradient(
-      to bottom,
-      rgba(255, 255, 240, 0.65) 0%,
-      rgba(255, 255, 230, 0.35) 30%,
-      rgba(255, 255, 220, 0.18) 70%,
-      rgba(255, 255, 200, 0.05) 100%
+      to top,
+      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.05) 0%,
+      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.18) 30%,
+      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.4) 70%,
+      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.65) 100%
     );
-  /* Trapezoid: narrower at top, wider at bottom — a cone of light. */
-  clip-path: polygon(42% 0%, 58% 0%, 100% 100%, 0% 100%);
+  /* Trapezoid: narrow at the bottom (lamp), wide at the top (where it hits the doors). */
+  clip-path: polygon(0% 0%, 100% 0%, 58% 100%, 42% 100%);
   filter: blur(6px);
   mix-blend-mode: screen;
 }
+/* The "pool" of light at the top of the beam — illuminates the door area on the wall. */
 .spotlight-pool {
   position: absolute;
-  bottom: -8%;
+  top: -4%;
   left: 50%;
   transform: translateX(-50%);
-  width: 110%;
-  height: 28%;
+  width: 130%;
+  height: 24%;
   background: radial-gradient(
     ellipse at center,
-    rgba(255, 255, 230, 0.85) 0%,
-    rgba(255, 255, 200, 0.4) 40%,
-    rgba(255, 255, 180, 0.1) 70%,
+    rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.85) 0%,
+    rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.4) 40%,
+    rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.1) 70%,
     transparent 100%
   );
   filter: blur(8px);
@@ -309,19 +312,26 @@
 }
 
 /* Locked state: snap onto the chosen door. The .yard has class
-   .spotlight-A | .spotlight-B | .spotlight-C — we rotate accordingly. */
+   .spotlight-A | .spotlight-B | .spotlight-C — we rotate accordingly.
+   Pivot is at the bottom, so a negative angle tilts the *top* of the beam left,
+   a positive angle tilts the top to the right. */
 .spotlight-A .spotlight-stage { transform: rotate(-22deg); }
 .spotlight-B .spotlight-stage { transform: rotate(0deg); }
 .spotlight-C .spotlight-stage { transform: rotate(22deg); }
 
-/* When locked, brighten the beam — the prison guard found someone */
+/* When locked, beam turns RED — "the cop found them" */
+.spotlight-locked .spotlight-stage {
+  --beam-color-r: 239;
+  --beam-color-g: 68;
+  --beam-color-b: 68;
+}
 .spotlight-locked .spotlight-beam,
 .spotlight-locked .spotlight-pool {
-  animation: spotlightLockPulse 0.6s ease-in-out infinite;
+  animation: spotlightLockPulse 0.55s ease-in-out infinite;
 }
 @keyframes spotlightLockPulse {
   0%, 100% { filter: blur(6px) brightness(1); }
-  50%      { filter: blur(8px) brightness(1.6); }
+  50%      { filter: blur(8px) brightness(1.7); }
 }
 
 /* Doors — painted PNG sprites */
@@ -372,8 +382,8 @@
 .door-checked .door-img {
   filter:
     drop-shadow(0 8px 16px rgba(0,0,0,0.7))
-    drop-shadow(0 0 24px rgba(255, 255, 220, 0.95))
-    brightness(1.25);
+    drop-shadow(0 0 24px rgba(239, 68, 68, 1))
+    brightness(1.2);
 }
 @keyframes bounce {
   0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
@@ -638,12 +648,12 @@
   transition: all 0.25s ease;
 }
 .spot-dot-on {
-  background: radial-gradient(circle, #fff 0%, #fff8d0 60%, #d4af37 100%);
+  background: radial-gradient(circle, #fff 0%, #fca5a5 50%, #ef4444 100%);
   border-color: #fff;
-  color: #1a1a26;
+  color: #fff;
   box-shadow:
-    0 0 18px rgba(255, 255, 220, 0.9),
-    0 0 36px rgba(255, 255, 220, 0.6);
+    0 0 18px rgba(239, 68, 68, 0.9),
+    0 0 36px rgba(239, 68, 68, 0.6);
   animation: dotPulse 0.6s ease-in-out infinite;
 }
 @keyframes dotPulse {
