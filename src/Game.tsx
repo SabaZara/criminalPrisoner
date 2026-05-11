@@ -217,37 +217,39 @@ export function Game() {
               <div className="spotlight-pool" />
             </div>
 
-            <div className="yard-wall yard-wall-overlay">
-              {PATHS.map((p) => (
-                <button
-                  key={p}
-                  className={`door door-${p} ${copPath === p ? 'door-checked' : ''} ${
-                    playerThug.chosenPath === p ? 'door-chosen' : ''
-                  } ${phase === 'choosing' && playerThug.alive ? 'door-active' : ''}`}
-                  style={{ ['--door-color' as string]: PATH_COLOR[p] }}
-                  onClick={() => choosePath(p)}
-                  disabled={phase !== 'choosing' || !playerThug.alive}
-                >
-                  <img className="door-img" src={SPRITES.doors[p]} alt={p} />
-                </button>
-              ))}
-            </div>
+            {PATHS.map((p) => (
+              <button
+                key={p}
+                className={`door door-${p} ${copPath === p ? 'door-checked' : ''} ${
+                  playerThug.chosenPath === p ? 'door-chosen' : ''
+                } ${phase === 'choosing' && playerThug.alive ? 'door-active' : ''}`}
+                style={{ ['--door-color' as string]: PATH_COLOR[p] }}
+                onClick={() => choosePath(p)}
+                disabled={phase !== 'choosing' || !playerThug.alive}
+              >
+                <img className="door-img" src={SPRITES.doors[p]} alt={p} />
+              </button>
+            ))}
 
             <div className="yard-paths-spacer" />
 
-            <div className="thug-line">
-              {thugs.map((t) => {
+            <div className="thug-stage">
+              {thugs.map((t, i) => {
                 const path = t.chosenPath;
                 const reveal = t.isPlayer
                   ? phase !== 'idle'
                   : phase === 'cop-checking' || phase === 'round-result' || phase === 'final-result';
                 const isWinner = winners.some((w) => w.id === t.id);
+                const onPath = reveal && path && t.alive;
+                // Starting x: spread 10 thugs evenly across 15%–85%
+                const startX = 15 + (i * 70) / 9;
                 return (
                   <div
                     key={t.id}
-                    className={`thug ${reveal && path && t.alive ? `thug-on-${path}` : ''} ${
+                    className={`thug ${onPath ? `thug-on-${path}` : ''} ${
                       t.alive ? '' : 'thug-caught'
                     } ${t.isPlayer ? 'thug-player' : ''} ${isWinner ? 'thug-winner' : ''}`}
+                    style={{ ['--thug-start-x' as string]: `${startX}%` }}
                   >
                     <img className="thug-body" src={t.avatar} alt={t.name} />
                     {t.isPlayer && <div className="you-tag">YOU</div>}

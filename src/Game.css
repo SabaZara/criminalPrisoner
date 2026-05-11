@@ -210,20 +210,7 @@
   z-index: 1;
 }
 
-/* Wall row — now just a positioning container on top of the painted bg */
-.yard-wall {
-  position: relative;
-  height: 30%;
-  min-height: 140px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  z-index: 2;
-}
-.yard-wall-overlay {
-  background: transparent;
-}
-.yard-wall-overlay::before { content: none; }
+/* Doors are absolutely positioned to sit on top of each painted path's vanishing point at the wall. */
 
 /* Watchtowers — painted PNG sprites */
 .watchtower-img {
@@ -334,11 +321,13 @@
   50%      { filter: blur(8px) brightness(1.7); }
 }
 
-/* Doors — painted PNG sprites */
+/* Doors — painted PNG sprites. Absolutely positioned to align with the painted paths. */
 .door {
-  position: relative;
-  width: 22%;
+  position: absolute;
+  top: 7%;
+  width: 13%;
   max-width: 130px;
+  transform: translateX(-50%);
   background: transparent;
   border: none;
   padding: 0;
@@ -348,6 +337,9 @@
   z-index: 2;
   display: block;
 }
+.door-A { left: 30%; }
+.door-B { left: 50%; }
+.door-C { left: 70%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -360,7 +352,7 @@
 .door-active {
   animation: doorPulse 1.6s ease-in-out infinite;
 }
-.door-active:hover { transform: translateY(-6px); }
+.door-active:hover { transform: translateX(-50%) translateY(-6px); }
 .door-active:hover .door-img {
   filter:
     drop-shadow(0 8px 14px rgba(0,0,0,0.7))
@@ -371,7 +363,7 @@
   50%      { filter: drop-shadow(0 0 14px var(--door-color)); }
 }
 .door-chosen {
-  transform: translateY(-8px);
+  transform: translateX(-50%) translateY(-8px);
 }
 .door-chosen .door-img {
   filter:
@@ -396,45 +388,48 @@
   min-height: 100px;
 }
 
-/* Thug line at bottom */
-.thug-line {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 4px;
-  padding: 8px 12px 14px;
-  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.55));
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  position: relative;
+/* Thug overlay layer — absolutely positioned thugs that can walk up paths. */
+.thug-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   z-index: 3;
 }
 .thug {
-  position: relative;
-  width: 56px;
+  position: absolute;
+  bottom: 4%;
+  left: var(--thug-start-x);
+  width: 8%;
+  max-width: 70px;
+  min-width: 36px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  flex-shrink: 0;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+  transform: translateX(-50%);
+  transition:
+    left 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+    bottom 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s ease,
+    filter 0.4s ease;
 }
 .thug-body {
   width: 100%;
   height: auto;
   display: block;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.7));
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.85));
 }
 .thug-player .thug-body {
   filter:
     drop-shadow(0 0 6px #d4af37)
-    drop-shadow(0 4px 6px rgba(0,0,0,0.7));
+    drop-shadow(0 4px 6px rgba(0,0,0,0.85));
 }
 @media (max-width: 1100px) {
-  .thug { width: 44px; }
+  .thug { width: 7%; min-width: 30px; }
 }
 @media (max-width: 700px) {
-  .thug { width: 36px; }
+  .thug { width: 8%; min-width: 24px; }
 }
 .you-tag {
   font-size: 8px;
@@ -444,27 +439,51 @@
   padding: 1px 4px;
   border-radius: 3px;
   letter-spacing: 1px;
+  position: absolute;
+  bottom: -10px;
 }
 .thug-path-tag {
   font-size: 9px;
   font-weight: 800;
   color: #fff;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.7);
   padding: 1px 5px;
   border-radius: 3px;
+  position: absolute;
+  top: -14px;
 }
-.thug-on-A { transform: translate(-32%, -50%); }
-.thug-on-B { transform: translate(0, -50%); }
-.thug-on-C { transform: translate(32%, -50%); }
+/* Walk to chosen door: snap to the door's x-position, move up + shrink for perspective. */
+.thug-on-A {
+  left: 30%;
+  bottom: 38%;
+  width: 5%;
+  min-width: 22px;
+  filter: brightness(0.85);
+}
+.thug-on-B {
+  left: 50%;
+  bottom: 38%;
+  width: 5%;
+  min-width: 22px;
+  filter: brightness(0.85);
+}
+.thug-on-C {
+  left: 70%;
+  bottom: 38%;
+  width: 5%;
+  min-width: 22px;
+  filter: brightness(0.85);
+}
+/* Caught — slumped over, faded out. */
 .thug-caught {
-  filter: grayscale(1) brightness(0.4);
-  transform: translateY(20px) rotate(8deg) !important;
-  opacity: 0.5;
+  filter: grayscale(1) brightness(0.35);
+  opacity: 0.55;
+  transform: translateX(-50%) rotate(6deg);
 }
 .thug-caught::after {
   content: '✗';
   position: absolute;
-  top: -8px; right: -4px;
+  top: 0; right: -4px;
   color: #ef4444;
   font-size: 18px;
   font-weight: 900;
