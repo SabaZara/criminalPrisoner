@@ -233,18 +233,7 @@ export function Game() {
               ))}
             </div>
 
-            <div className="yard-paths">
-              {PATHS.map((p) => (
-                <div key={p} className={`path path-${p} ${copPath === p ? 'path-cop' : ''}`}>
-                  {copPath === p && (
-                    <div className="cop-marker">
-                      <div className="cop-light" />
-                      <span>COP</span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <div className="yard-paths-spacer" />
 
             <div className="thug-line">
               {thugs.map((t) => {
