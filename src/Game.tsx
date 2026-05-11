@@ -22,6 +22,7 @@ const MIN_BET = 1000;
 const MAX_BET = 1000000;
 
 /** Round pacing (ms). Total target ≈ 5s per round so thugs visibly walk before the cop strikes. */
+const PICK_TIMER_MS = 5000;      // player has 5s to pick (and can change their mind)
 const BOT_REVEAL_MS = 700;       // bots commit their pick (sprites snap onto a path)
 const WALK_TO_DOOR_MS = 3000;    // thugs walk up to their doors — spotlight sweeps overhead
 const ROUND_RESULT_MS = 1300;    // pause on the result before the next round starts
@@ -43,10 +44,17 @@ export function Game() {
   const [payoutToPlayer, setPayoutToPlayer] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  /** ms remaining in the pick phase. >0 only while phase === 'choosing'. */
+  const [pickMsLeft, setPickMsLeft] = useState(0);
   const timeouts = useRef<number[]>([]);
+  const tickInterval = useRef<number | null>(null);
+  const pickDeadline = useRef<number>(0);
 
   useEffect(() => {
-    return () => timeouts.current.forEach(clearTimeout);
+    return () => {
+      timeouts.current.forEach(clearTimeout);
+      if (tickInterval.current) clearInterval(tickInterval.current);
+    };
   }, []);
 
   const playerThug = thugs[0];
@@ -110,13 +118,56 @@ export function Game() {
     timeouts.current.push(t2);
   };
 
-  /** Player picks a door, then runs the round. */
+  /** Player picks (or switches to) a door. Doesn't trigger the round — the timer does. */
   const choosePath = (p: Path) => {
     if (phase !== 'choosing') return;
     if (!playerThug.alive) return;
     setThugs((cur) => cur.map((t) => (t.isPlayer ? { ...t, chosenPath: p } : t)));
-    runRound();
   };
+
+  /** Start the 5s pick window. When it expires, runRound() fires. */
+  useEffect(() => {
+    if (phase !== 'choosing' || !playerThug.alive) {
+      setPickMsLeft(0);
+      if (tickInterval.current) {
+        clearInterval(tickInterval.current);
+        tickInterval.current = null;
+      }
+      return;
+    }
+
+    pickDeadline.current = Date.now() + PICK_TIMER_MS;
+    setPickMsLeft(PICK_TIMER_MS);
+
+    const tick = () => {
+      const remaining = Math.max(0, pickDeadline.current - Date.now());
+      setPickMsLeft(remaining);
+      if (remaining <= 0) {
+        if (tickInterval.current) {
+          clearInterval(tickInterval.current);
+          tickInterval.current = null;
+        }
+        // If the player never picked, auto-assign a random path so the round can resolve.
+        setThugs((cur) => {
+          const me = cur[0];
+          if (!me.chosenPath) {
+            const auto = pickRandomPath();
+            return cur.map((t) => (t.isPlayer ? { ...t, chosenPath: auto } : t));
+          }
+          return cur;
+        });
+        runRound();
+      }
+    };
+    tickInterval.current = window.setInterval(tick, 100);
+    return () => {
+      if (tickInterval.current) {
+        clearInterval(tickInterval.current);
+        tickInterval.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, playerThug.alive, round]);
 
   /** When player is eliminated but the game continues, auto-run rounds in spectate mode. */
   useEffect(() => {
@@ -241,9 +292,14 @@ export function Game() {
             <div className="thug-stage">
               {thugs.map((t, i) => {
                 const path = t.chosenPath;
-                const reveal = t.isPlayer
-                  ? phase !== 'idle'
-                  : phase === 'cop-checking' || phase === 'round-result' || phase === 'final-result';
+                // Thugs only "walk" to their door once the round leaves the choosing phase.
+                // During choosing, even if the player has picked, they stay at the bottom so
+                // they can change their mind without an awkward walk-back animation.
+                const reveal =
+                  phase === 'revealing-bots' ||
+                  phase === 'cop-checking' ||
+                  phase === 'round-result' ||
+                  phase === 'final-result';
                 const isWinner = winners.some((w) => w.id === t.id);
                 const onPath = reveal && path && t.alive;
                 // Starting x: spread 10 thugs evenly across 15%–85%
@@ -265,7 +321,18 @@ export function Game() {
             </div>
 
             {phase === 'choosing' && playerThug.alive && (
-              <div className="prompt-banner">ROUND {round} · CHOOSE A DOOR</div>
+              <div className={`pick-timer ${pickMsLeft < 1500 ? 'pick-timer-urgent' : ''}`}>
+                <div className="pick-timer-label">
+                  ROUND {round} · {playerThug.chosenPath ? `LOCKED IN — DOOR ${playerThug.chosenPath} (TAP TO CHANGE)` : 'CHOOSE A DOOR'}
+                </div>
+                <div className="pick-timer-track">
+                  <div
+                    className="pick-timer-fill"
+                    style={{ width: `${(pickMsLeft / PICK_TIMER_MS) * 100}%` }}
+                  />
+                </div>
+                <div className="pick-timer-seconds">{(pickMsLeft / 1000).toFixed(1)}s</div>
+              </div>
             )}
 
             {phase === 'choosing' && !playerThug.alive && (
