@@ -241,6 +241,89 @@
   .watchtower-img { height: 22%; }
 }
 
+/* ===== BIG WHITE SPOTLIGHT =====
+   The beam emanates from the top-center (between the watchtowers) and
+   widens into a pool at door-level. It rotates left/right (sweep) and
+   locks on a single door when the cop checks.
+   We rotate the whole .spotlight-stage on its top-center pivot. */
+.spotlight-stage {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  width: 22%;
+  height: 78%;
+  margin-left: -11%; /* center on the yard's mid-x */
+  transform-origin: 50% 0%;
+  pointer-events: none;
+  z-index: 3;
+  transition: transform 0.7s cubic-bezier(0.6, 0, 0.3, 1);
+  will-change: transform;
+}
+.spotlight-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(255, 255, 240, 0.65) 0%,
+      rgba(255, 255, 230, 0.35) 30%,
+      rgba(255, 255, 220, 0.18) 70%,
+      rgba(255, 255, 200, 0.05) 100%
+    );
+  /* Trapezoid: narrower at top, wider at bottom — a cone of light. */
+  clip-path: polygon(42% 0%, 58% 0%, 100% 100%, 0% 100%);
+  filter: blur(6px);
+  mix-blend-mode: screen;
+}
+.spotlight-pool {
+  position: absolute;
+  bottom: -2%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130%;
+  height: 22%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 230, 0.85) 0%,
+    rgba(255, 255, 200, 0.4) 40%,
+    rgba(255, 255, 180, 0.1) 70%,
+    transparent 100%
+  );
+  filter: blur(8px);
+  mix-blend-mode: screen;
+}
+
+/* Sweep state: rotate continuously between -25° and +25° */
+.spotlight-sweep .spotlight-stage {
+  animation: spotlightSweep 4.5s ease-in-out infinite;
+  transition: none;
+}
+@keyframes spotlightSweep {
+  0%   { transform: rotate(-25deg); }
+  50%  { transform: rotate(25deg); }
+  100% { transform: rotate(-25deg); }
+}
+
+/* Locked state: snap onto the chosen door. The .yard has class
+   .spotlight-A | .spotlight-B | .spotlight-C — we rotate accordingly. */
+.spotlight-A .spotlight-stage { transform: rotate(-22deg); }
+.spotlight-B .spotlight-stage { transform: rotate(0deg); }
+.spotlight-C .spotlight-stage { transform: rotate(22deg); }
+
+/* When locked, brighten the beam — the prison guard found someone */
+.spotlight-locked .spotlight-beam,
+.spotlight-locked .spotlight-pool {
+  animation: spotlightLockPulse 0.6s ease-in-out infinite;
+}
+@keyframes spotlightLockPulse {
+  0%, 100% { filter: blur(6px) brightness(1); }
+  50%      { filter: blur(8px) brightness(1.6); }
+}
+
 /* Doors — painted PNG sprites */
 .door {
   position: relative;
@@ -286,17 +369,11 @@
     drop-shadow(0 0 22px var(--door-color))
     drop-shadow(0 0 4px #fff);
 }
-.door-checked::before {
-  content: '';
-  position: absolute;
-  top: -38px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px; height: 30px;
-  background: radial-gradient(circle, #fff 0%, #ef4444 50%, transparent 75%);
-  border-radius: 50%;
-  animation: bounce 0.5s ease-out, copBlink 0.6s ease-in-out infinite 0.5s;
-  box-shadow: 0 0 30px #ef4444, 0 0 60px #ef4444;
+.door-checked .door-img {
+  filter:
+    drop-shadow(0 8px 16px rgba(0,0,0,0.7))
+    drop-shadow(0 0 24px rgba(255, 255, 220, 0.95))
+    brightness(1.25);
 }
 @keyframes bounce {
   0% { transform: translateX(-50%) translateY(20px); opacity: 0; }
@@ -325,12 +402,12 @@
 
 .path-cop {
   background: linear-gradient(180deg,
-    rgba(239, 68, 68, 0.55) 0%,
-    rgba(239, 68, 68, 0.35) 60%,
-    rgba(239, 68, 68, 0.2) 100%);
+    rgba(255, 255, 220, 0.6) 0%,
+    rgba(255, 255, 200, 0.35) 60%,
+    rgba(255, 255, 180, 0.18) 100%);
   box-shadow:
-    inset 0 0 40px rgba(239, 68, 68, 0.7),
-    inset 0 0 0 2px rgba(255, 80, 80, 0.6);
+    inset 0 0 40px rgba(255, 255, 220, 0.7),
+    inset 0 0 0 2px rgba(255, 255, 240, 0.5);
   mix-blend-mode: screen;
 }
 .cop-marker {
@@ -346,9 +423,9 @@
 }
 .cop-light {
   width: 36px; height: 36px;
-  background: radial-gradient(circle, #fff 0%, #ef4444 50%, #7a0000 100%);
+  background: radial-gradient(circle, #fff 0%, #fff8d0 50%, #d4af37 100%);
   border-radius: 50%;
-  box-shadow: 0 0 30px #ef4444, 0 0 60px #ef4444;
+  box-shadow: 0 0 30px rgba(255,255,220,0.9), 0 0 60px rgba(255,255,200,0.7);
   animation: copBlink 0.6s ease-in-out infinite;
 }
 .cop-marker span {
@@ -361,8 +438,8 @@
   border-radius: 3px;
 }
 @keyframes copBlink {
-  0%, 100% { box-shadow: 0 0 30px #ef4444, 0 0 60px #ef4444; }
-  50% { box-shadow: 0 0 60px #ef4444, 0 0 100px #ef4444; }
+  0%, 100% { box-shadow: 0 0 30px rgba(255,255,220,0.9), 0 0 60px rgba(255,255,200,0.7); }
+  50%      { box-shadow: 0 0 60px rgba(255,255,220,1),    0 0 100px rgba(255,255,200,0.9); }
 }
 
 /* Thug line at bottom */
@@ -596,26 +673,38 @@
   text-align: center;
 }
 
-.sirens {
+/* Spotlight indicator (3 dots — A B C). Off when sweeping, lit when locked. */
+.spot-indicator {
   display: flex;
-  gap: 14px;
-  align-items: flex-end;
+  gap: 12px;
+  align-items: center;
 }
-.siren-img {
+.spot-dot {
   width: 36px;
-  height: auto;
-  opacity: 0.35;
-  filter: grayscale(0.4) brightness(0.7);
-  transition: opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.15);
+  color: #888;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+  transition: all 0.25s ease;
 }
-.siren-active {
-  opacity: 1;
-  filter: drop-shadow(0 0 12px currentColor) brightness(1.15);
-  animation: sirenPulse 0.6s ease-in-out infinite;
+.spot-dot-on {
+  background: radial-gradient(circle, #fff 0%, #fff8d0 60%, #d4af37 100%);
+  border-color: #fff;
+  color: #1a1a26;
+  box-shadow:
+    0 0 18px rgba(255, 255, 220, 0.9),
+    0 0 36px rgba(255, 255, 220, 0.6);
+  animation: dotPulse 0.6s ease-in-out infinite;
 }
-@keyframes sirenPulse {
-  0%, 100% { transform: scale(1); filter: brightness(1.05); }
-  50%      { transform: scale(1.08); filter: brightness(1.5); }
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
 }
 
 .win-value {

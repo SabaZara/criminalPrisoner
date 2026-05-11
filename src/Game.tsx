@@ -203,10 +203,20 @@ export function Game() {
           </div>
 
           {/* Center: Prison Yard */}
-          <div className="yard" style={{ backgroundImage: `url(${SPRITES.bgYard})` }}>
+          <div
+            className={`yard ${copPath ? `spotlight-locked spotlight-${copPath}` : 'spotlight-sweep'}`}
+            style={{ backgroundImage: `url(${SPRITES.bgYard})` }}
+          >
             <div className="yard-vignette" />
             <img className="watchtower-img watchtower-left" src={SPRITES.tower} alt="" />
             <img className="watchtower-img watchtower-right" src={SPRITES.tower} alt="" />
+
+            {/* Big white spotlight: always visible. Sweeps left↔right between rounds, locks on a door when cop checks. */}
+            <div className="spotlight-stage">
+              <div className="spotlight-beam" />
+              <div className="spotlight-pool" />
+            </div>
+
             <div className="yard-wall yard-wall-overlay">
               {PATHS.map((p) => (
                 <button
@@ -318,15 +328,17 @@ export function Game() {
           </div>
 
           <div className="cop-block">
-            <div className="bar-label">ROUND {phase === 'idle' ? '–' : round} · COP CHECKS</div>
-            <div className="sirens">
+            <div className="bar-label">
+              ROUND {phase === 'idle' ? '–' : round} · SPOTLIGHT {copPath ? `LOCKED ON ${copPath}` : 'SWEEPING'}
+            </div>
+            <div className="spot-indicator">
               {PATHS.map((p) => (
-                <img
+                <div
                   key={p}
-                  src={SPRITES.sirens[p]}
-                  alt={`siren ${p}`}
-                  className={`siren-img ${copPath === p ? 'siren-active' : ''}`}
-                />
+                  className={`spot-dot ${copPath === p ? 'spot-dot-on' : ''}`}
+                >
+                  {p}
+                </div>
               ))}
             </div>
           </div>

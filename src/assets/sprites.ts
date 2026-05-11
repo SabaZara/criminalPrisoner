@@ -2,9 +2,6 @@ import bgYard from './img/bg-yard.png';
 import doorA from './img/door-a.png';
 import doorB from './img/door-b.png';
 import doorC from './img/door-c.png';
-import sirenRed from './img/siren-red.png';
-import sirenGold from './img/siren-gold.png';
-import sirenBlue from './img/siren-blue.png';
 import tower from './img/tower.png';
 import thug1 from './img/thug-1.png';
 import thug2 from './img/thug-2.png';
@@ -21,6 +18,5 @@ export const SPRITES = {
   bgYard,
   tower,
   doors: { A: doorA, B: doorB, C: doorC },
-  sirens: { A: sirenRed, B: sirenGold, C: sirenBlue },
   thugs: [thug1, thug2, thug3, thug4, thug5, thug6, thug7, thug8, thug9, thug10],
 };
