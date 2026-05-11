@@ -1,7 +1,7 @@
+import { SPRITES } from './assets/sprites';
 import type { Path, Thug } from './types';
 
 const BOT_NAMES = ['Viper', 'Shadow', 'Lucky', 'Blaze', 'Rocco', 'Ghost', 'Tank', 'Joker', 'Bandit', 'Ace'];
-const AVATARS = ['🥷', '🧔', '🤠', '👨‍🦲', '🧑‍🎤', '👻', '💪', '🤡', '🦹', '😎'];
 
 export const PATHS: Path[] = ['A', 'B', 'C'];
 export const TOTAL_THUGS = 10;
@@ -10,7 +10,7 @@ export function buildInitialThugs(playerName: string): Thug[] {
   return Array.from({ length: TOTAL_THUGS }, (_, i) => ({
     id: i + 1,
     name: i === 0 ? playerName : BOT_NAMES[i],
-    avatar: AVATARS[i],
+    avatar: SPRITES.thugs[i],
     alive: true,
     isPlayer: i === 0,
   }));

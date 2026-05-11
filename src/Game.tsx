@@ -14,7 +14,7 @@ import {
 import { storage } from './storage';
 import type { GamePhase, Path, Thug } from './types';
 import { TopBar } from './TopBar';
-import bgYard from './assets/img/bg-yard.png';
+import { SPRITES } from './assets/sprites';
 import './Game.css';
 
 const BET_STEP = 1000;
@@ -186,7 +186,7 @@ export function Game() {
                     key={t.id}
                     className={`player-row ${t.alive ? 'alive' : 'dead'} ${t.isPlayer ? 'is-player' : ''} ${isWinner ? 'is-winner' : ''}`}
                   >
-                    <div className="avatar">{t.avatar}</div>
+                    <img className="avatar avatar-img" src={t.avatar} alt={t.name} />
                     <div className="player-name">{t.id}. {t.name}</div>
                     <div className="player-status">
                       {isWinner ? '★ WIN' : t.alive ? 'ALIVE' : `R${t.eliminatedRound}`}
@@ -203,17 +203,11 @@ export function Game() {
           </div>
 
           {/* Center: Prison Yard */}
-          <div className="yard" style={{ backgroundImage: `url(${bgYard})` }}>
+          <div className="yard" style={{ backgroundImage: `url(${SPRITES.bgYard})` }}>
             <div className="yard-vignette" />
+            <img className="watchtower-img watchtower-left" src={SPRITES.tower} alt="" />
+            <img className="watchtower-img watchtower-right" src={SPRITES.tower} alt="" />
             <div className="yard-wall yard-wall-overlay">
-              <div className="watchtower watchtower-left">
-                <div className="tower-roof" />
-                <div className="tower-light" />
-              </div>
-              <div className="watchtower watchtower-right">
-                <div className="tower-roof" />
-                <div className="tower-light" />
-              </div>
               {PATHS.map((p) => (
                 <button
                   key={p}
@@ -224,7 +218,7 @@ export function Game() {
                   onClick={() => choosePath(p)}
                   disabled={phase !== 'choosing' || !playerThug.alive}
                 >
-                  <span className="door-letter">{p}</span>
+                  <img className="door-img" src={SPRITES.doors[p]} alt={p} />
                 </button>
               ))}
             </div>
@@ -256,7 +250,7 @@ export function Game() {
                       t.alive ? '' : 'thug-caught'
                     } ${t.isPlayer ? 'thug-player' : ''} ${isWinner ? 'thug-winner' : ''}`}
                   >
-                    <div className="thug-body">{t.avatar}</div>
+                    <img className="thug-body" src={t.avatar} alt={t.name} />
                     {t.isPlayer && <div className="you-tag">YOU</div>}
                     {reveal && path && t.alive && <div className="thug-path-tag">{path}</div>}
                   </div>
@@ -291,8 +285,7 @@ export function Game() {
                   Pool {pool.toLocaleString()} · Your share {payoutToPlayer.toLocaleString()}
                 </div>
                 <div className="result-winners">
-                  Winner{winners.length > 1 ? 's' : ''}:{' '}
-                  {winners.map((w) => `${w.avatar} ${w.name}`).join(' · ')}
+                  Winner{winners.length > 1 ? 's' : ''}: {winners.map((w) => w.name).join(' · ')}
                 </div>
                 <button className="btn-play" onClick={reset}>PLAY AGAIN</button>
               </div>
@@ -328,10 +321,11 @@ export function Game() {
             <div className="bar-label">ROUND {phase === 'idle' ? '–' : round} · COP CHECKS</div>
             <div className="sirens">
               {PATHS.map((p) => (
-                <div
+                <img
                   key={p}
-                  className={`siren ${copPath === p ? 'siren-active' : ''}`}
-                  style={{ ['--siren-color' as string]: PATH_COLOR[p] }}
+                  src={SPRITES.sirens[p]}
+                  alt={`siren ${p}`}
+                  className={`siren-img ${copPath === p ? 'siren-active' : ''}`}
                 />
               ))}
             </div>
