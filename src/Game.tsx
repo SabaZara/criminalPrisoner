@@ -330,18 +330,12 @@ export function Game() {
             </div>
 
             {phase === 'choosing' && playerThug.alive && (
-              <div className={`pick-timer ${pickMsLeft < 1500 ? 'pick-timer-urgent' : ''}`}>
-                <div className="pick-timer-label">
-                  ROUND {round} · {playerThug.chosenPath ? `LOCKED IN — DOOR ${playerThug.chosenPath} (TAP TO CHANGE)` : 'CHOOSE A DOOR'}
-                </div>
-                <div className="pick-timer-track">
-                  <div
-                    className="pick-timer-fill"
-                    style={{ width: `${(pickMsLeft / PICK_TIMER_MS) * 100}%` }}
-                  />
-                </div>
-                <div className="pick-timer-seconds">{(pickMsLeft / 1000).toFixed(1)}s</div>
-              </div>
+              <PickTimer
+                round={round}
+                msLeft={pickMsLeft}
+                totalMs={PICK_TIMER_MS}
+                chosenPath={playerThug.chosenPath}
+              />
             )}
 
             {phase === 'choosing' && !playerThug.alive && (
@@ -473,6 +467,73 @@ function HistoryModal({ onClose }: { onClose: () => void }) {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PickTimer({
+  round,
+  msLeft,
+  totalMs,
+  chosenPath,
+}: {
+  round: number;
+  msLeft: number;
+  totalMs: number;
+  chosenPath?: Path;
+}) {
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.max(0, Math.min(1, msLeft / totalMs));
+  const dashOffset = circumference * (1 - progress);
+  const urgent = msLeft < 1500;
+  const seconds = Math.ceil(msLeft / 1000);
+
+  return (
+    <div className={`pick-timer ${urgent ? 'pick-timer-urgent' : ''}`}>
+      <div className="pick-timer-eyebrow">ROUND {round}</div>
+      <div className="pick-timer-ring-wrap">
+        <svg viewBox="0 0 120 120" className="pick-timer-ring">
+          <defs>
+            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f7e08a" />
+              <stop offset="50%" stopColor="#d4af37" />
+              <stop offset="100%" stopColor="#8a6a14" />
+            </linearGradient>
+            <linearGradient id="ring-grad-urgent" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#fca5a5" />
+              <stop offset="100%" stopColor="#ef4444" />
+            </linearGradient>
+          </defs>
+          {/* outer track */}
+          <circle cx="60" cy="60" r={radius} className="pick-timer-track-circle" />
+          {/* progress arc */}
+          <circle
+            cx="60"
+            cy="60"
+            r={radius}
+            className="pick-timer-progress"
+            stroke={`url(#${urgent ? 'ring-grad-urgent' : 'ring-grad'})`}
+            strokeDasharray={circumference}
+            strokeDashoffset={dashOffset}
+          />
+        </svg>
+        <div className="pick-timer-center">
+          <div className="pick-timer-number">{seconds}</div>
+          <div className="pick-timer-unit">SECONDS</div>
+        </div>
+      </div>
+      <div className="pick-timer-status">
+        {chosenPath ? (
+          <>
+            <span className="pick-timer-lock-dot" />
+            LOCKED IN · DOOR <span className="accent-gold">{chosenPath}</span>
+            <span className="pick-timer-hint">TAP TO CHANGE</span>
+          </>
+        ) : (
+          'CHOOSE A DOOR'
+        )}
       </div>
     </div>
   );

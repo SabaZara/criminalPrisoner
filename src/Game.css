@@ -285,40 +285,22 @@
   mix-blend-mode: screen;
 }
 
-/* Sweep: 5 beats over 3s — A → B → C → B → A → (loop). Each beat = 600ms.
-   We brighten the active one and fade the others quickly. */
-.door-spotlight-sweep { animation-duration: 3s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
-.door-spotlight-sweep.door-spotlight-A { animation-name: sweepA; }
-.door-spotlight-sweep.door-spotlight-B { animation-name: sweepB; }
-.door-spotlight-sweep.door-spotlight-C { animation-name: sweepC; }
-
-@keyframes sweepA {
-  0%    { opacity: 1; }   /* beat 1: A */
-  16%   { opacity: 0.05; }
-  20%, 76% { opacity: 0; }
-  80%   { opacity: 0.05; }
-  96%, 100% { opacity: 1; } /* beat 5: back to A */
+/* Sweep state: all three cones lit continuously with a subtle breathing pulse,
+   staggered by 0.5s so the wall has a "living spotlights" feel without any beam
+   ever going off. */
+.door-spotlight-sweep {
+  opacity: 1;
+  animation: spotlightBreath 2.4s ease-in-out infinite;
 }
-@keyframes sweepB {
-  0%    { opacity: 0; }
-  16%   { opacity: 0.05; }
-  20%, 36% { opacity: 1; } /* beat 2: B (right) */
-  40%   { opacity: 0.05; }
-  44%, 56% { opacity: 0; }
-  60%   { opacity: 0.05; }
-  64%, 76% { opacity: 1; } /* beat 4: B (return) */
-  80%   { opacity: 0.05; }
-  84%, 100% { opacity: 0; }
-}
-@keyframes sweepC {
-  0%, 36% { opacity: 0; }
-  40%   { opacity: 0.05; }
-  44%, 56% { opacity: 1; } /* beat 3: C */
-  60%   { opacity: 0.05; }
-  64%, 100% { opacity: 0; }
+.door-spotlight-sweep.door-spotlight-A { animation-delay: 0s; }
+.door-spotlight-sweep.door-spotlight-B { animation-delay: 0.8s; }
+.door-spotlight-sweep.door-spotlight-C { animation-delay: 1.6s; }
+@keyframes spotlightBreath {
+  0%, 100% { filter: brightness(0.85); }
+  50%      { filter: brightness(1.15); }
 }
 
-/* Locked: one door's cone stays lit and turns red, the other two stay dark. */
+/* Locked: the chosen door's cone turns red and pulses hard. Other two dim out. */
 .door-spotlight-locked {
   opacity: 1;
   --beam-r: 239;
@@ -328,11 +310,12 @@
 }
 @keyframes lockedPulse {
   0%, 100% { filter: brightness(1); }
-  50%      { filter: brightness(1.7); }
+  50%      { filter: brightness(1.8); }
 }
-/* Doors that AREN'T locked during a check stay dark. */
+/* During lock, the other two cones fade out. */
 .door-spotlight-idle:not(.door-spotlight-locked) {
-  opacity: 0;
+  opacity: 0.15;
+  filter: brightness(0.5);
 }
 
 /* Doors — painted PNG sprites. Absolutely positioned to align with the painted paths. */
@@ -522,61 +505,164 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
-/* Pick-phase HUD: label + bar + big seconds readout, lives at the top of the yard. */
+/* ===== LUXURY PICK TIMER =====
+   Circular gold-on-glass countdown ring with a serif numeral. */
 .pick-timer {
   position: absolute;
-  top: 12px;
+  top: 18px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 10px 22px;
-  background: rgba(0, 0, 0, 0.78);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  border-radius: 12px;
+  gap: 10px;
+  padding: 16px 32px 18px;
+  background:
+    linear-gradient(180deg, rgba(28, 24, 14, 0.72) 0%, rgba(10, 8, 4, 0.85) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 16px;
   z-index: 10;
-  min-width: 320px;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.6);
-  animation: bannerSlide 0.4s ease;
+  box-shadow:
+    0 20px 50px -10px rgba(0,0,0,0.75),
+    0 0 0 1px rgba(212, 175, 55, 0.08) inset,
+    0 1px 0 rgba(255, 220, 130, 0.18) inset,
+    0 0 60px -20px rgba(212, 175, 55, 0.4);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  animation: timerEntrance 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
-.pick-timer-label {
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #f4d04a;
-  white-space: nowrap;
+@keyframes timerEntrance {
+  0%   { transform: translateX(-50%) translateY(-12px) scale(0.92); opacity: 0; }
+  100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
 }
-.pick-timer-track {
+
+/* Hairline gold dividers above + below */
+.pick-timer::before, .pick-timer::after {
+  content: '';
+  position: absolute;
+  left: 14%; right: 14%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.55), transparent);
+}
+.pick-timer::before { top: 8px; }
+.pick-timer::after  { bottom: 8px; }
+
+.pick-timer-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 5px;
+  color: rgba(212, 175, 55, 0.75);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.pick-timer-ring-wrap {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+}
+.pick-timer-ring {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 8px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.pick-timer-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4ade80 0%, #d4af37 60%, #ef4444 100%);
-  border-radius: 99px;
-  transition: width 100ms linear;
-  box-shadow: 0 0 12px currentColor;
+  transform: rotate(-90deg); /* start the arc at 12 o'clock */
 }
-.pick-timer-seconds {
-  font-size: 28px;
-  font-weight: 900;
-  color: #fff;
+.pick-timer-track-circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 6;
+}
+.pick-timer-progress {
+  fill: none;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 100ms linear;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.7));
+}
+.pick-timer-center {
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+.pick-timer-number {
+  font-family: 'Times New Roman', 'Georgia', serif;
+  font-size: 56px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 1px;
+  background: linear-gradient(180deg, #fff 0%, #f7e08a 35%, #d4af37 80%, #8a6a14 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
   line-height: 1;
+  text-shadow: 0 2px 12px rgba(212, 175, 55, 0.4);
+  letter-spacing: -2px;
 }
+.pick-timer-unit {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 5px;
+  color: rgba(212, 175, 55, 0.7);
+  margin-top: 2px;
+}
+
+.pick-timer-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: rgba(255, 240, 200, 0.85);
+  margin-bottom: 2px;
+}
+.pick-timer-status .accent-gold {
+  color: #f4d04a;
+  font-size: 13px;
+}
+.pick-timer-lock-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px #4ade80;
+  animation: lockDotBlink 1.4s ease-in-out infinite;
+}
+@keyframes lockDotBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+.pick-timer-hint {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 10px;
+  letter-spacing: 2px;
+  margin-left: 6px;
+}
+
+/* Urgent — under 1.5s. Red glow + breathing scale. */
 .pick-timer-urgent {
-  border-color: #ef4444;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 24px rgba(239, 68, 68, 0.45);
-  animation: bannerSlide 0.4s ease, urgentPulse 0.6s ease-in-out infinite;
+  border-color: rgba(239, 68, 68, 0.7);
+  box-shadow:
+    0 20px 50px -10px rgba(0,0,0,0.75),
+    0 0 0 1px rgba(239, 68, 68, 0.15) inset,
+    0 1px 0 rgba(252, 165, 165, 0.2) inset,
+    0 0 60px -10px rgba(239, 68, 68, 0.55);
+  animation: timerEntrance 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2), urgentPulse 0.55s ease-in-out infinite 0.45s;
 }
-.pick-timer-urgent .pick-timer-seconds { color: #ef4444; }
-.pick-timer-urgent .pick-timer-label { color: #fca5a5; }
+.pick-timer-urgent .pick-timer-eyebrow { color: rgba(252, 165, 165, 0.9); }
+.pick-timer-urgent .pick-timer-unit    { color: rgba(252, 165, 165, 0.8); }
+.pick-timer-urgent .pick-timer-number {
+  background: linear-gradient(180deg, #fff 0%, #fca5a5 50%, #ef4444 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 16px rgba(239, 68, 68, 0.6);
+}
+.pick-timer-urgent .pick-timer-progress {
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.9));
+}
 @keyframes urgentPulse {
   0%, 100% { transform: translateX(-50%) scale(1); }
   50%      { transform: translateX(-50%) scale(1.04); }
