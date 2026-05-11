@@ -4,9 +4,10 @@ const BOT_NAMES = ['Viper', 'Shadow', 'Lucky', 'Blaze', 'Rocco', 'Ghost', 'Tank'
 const AVATARS = ['🥷', '🧔', '🤠', '👨‍🦲', '🧑‍🎤', '👻', '💪', '🤡', '🦹', '😎'];
 
 export const PATHS: Path[] = ['A', 'B', 'C'];
+export const TOTAL_THUGS = 10;
 
 export function buildInitialThugs(playerName: string): Thug[] {
-  return Array.from({ length: 10 }, (_, i) => ({
+  return Array.from({ length: TOTAL_THUGS }, (_, i) => ({
     id: i + 1,
     name: i === 0 ? playerName : BOT_NAMES[i],
     avatar: AVATARS[i],
@@ -19,17 +20,46 @@ export function pickRandomPath(): Path {
   return PATHS[Math.floor(Math.random() * 3)];
 }
 
+/** Bots only pick paths if they're still alive and haven't already chosen this round. */
 export function pickBotPaths(thugs: Thug[]): Thug[] {
   return thugs.map((t) =>
-    t.isPlayer ? t : { ...t, chosenPath: pickRandomPath() }
+    t.isPlayer || !t.alive ? t : { ...t, chosenPath: pickRandomPath() }
   );
 }
 
-export function applyCopCheck(thugs: Thug[], copPath: Path): Thug[] {
-  return thugs.map((t) => ({
-    ...t,
-    alive: t.chosenPath !== copPath,
-  }));
+/** Mark thugs on the cop's path as eliminated this round. Survivors keep alive=true. */
+export function applyCopCheck(thugs: Thug[], copPath: Path, round: number): Thug[] {
+  return thugs.map((t) => {
+    if (!t.alive) return t;
+    if (t.chosenPath === copPath) {
+      return { ...t, alive: false, eliminatedRound: round };
+    }
+    return t;
+  });
 }
 
-export const PAYOUT_MULTIPLIER = 10;
+/** Clear chosenPath for all alive thugs (start of next round). */
+export function clearChoices(thugs: Thug[]): Thug[] {
+  return thugs.map((t) => (t.alive ? { ...t, chosenPath: undefined } : t));
+}
+
+/**
+ * Decide outcome after a cop check:
+ * - If 1+ alive thugs remain → continue to next round (no winner yet)
+ * - If 0 alive AND multiple were eliminated this round → those last-eliminated split the pool
+ * - If 0 alive AND only 1 was eliminated this round (impossible if prior round had 1) — fallback
+ *
+ * Returns the set of winners (those who split the pool) or null if rounds continue.
+ */
+export function determineWinners(thugs: Thug[], lastEliminatedRound: number): Thug[] | null {
+  const alive = thugs.filter((t) => t.alive);
+  if (alive.length > 1) return null;
+  if (alive.length === 1) return alive;
+  // 0 alive — split between those eliminated in the final round
+  return thugs.filter((t) => t.eliminatedRound === lastEliminatedRound);
+}
+
+/** Player ante is `bet`; total pool is bet * 10 (other 9 thugs ante same amount). */
+export function calculatePool(bet: number): number {
+  return bet * TOTAL_THUGS;
+}

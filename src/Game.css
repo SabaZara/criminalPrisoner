@@ -106,6 +106,17 @@
 .player-row.dead .player-name,
 .player-row.dead .avatar { opacity: 0.3; text-decoration: line-through; }
 .player-row.dead .player-status { color: #ef4444; }
+.player-row.is-winner {
+  background: linear-gradient(90deg, rgba(74, 222, 128, 0.18), rgba(74, 222, 128, 0.05));
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+}
+.player-row.is-winner .player-name,
+.player-row.is-winner .avatar { opacity: 1; text-decoration: none; }
+.player-row.is-winner .player-status {
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
 .avatar {
   width: 26px; height: 26px;
   display: grid; place-items: center;
@@ -488,6 +499,27 @@
   animation: bannerSlide 0.4s ease;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
+.prompt-banner.spectate {
+  background: rgba(60, 60, 70, 0.95);
+  color: #ddd;
+}
+.round-banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 14px 32px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  z-index: 15;
+  animation: bannerSlide 0.4s ease;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+}
 @keyframes bannerSlide {
   from { transform: translate(-50%, -20px); opacity: 0; }
   to { transform: translate(-50%, 0); opacity: 1; }
@@ -524,6 +556,30 @@
 .result-banner.lose .result-msg {
   color: #ef4444;
   text-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+}
+.result-detail {
+  font-size: 14px;
+  color: #ddd;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+.result-winners {
+  font-size: 13px;
+  color: #f4d04a;
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 0 20px;
+  max-width: 600px;
+}
+.thug-winner {
+  animation: winnerPulse 1.4s ease-in-out infinite;
+}
+.thug-winner .thug-body {
+  filter: drop-shadow(0 0 12px #4ade80) drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+@keyframes winnerPulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 /* Bottom control bar */
@@ -627,6 +683,12 @@
   font-weight: 900;
   letter-spacing: 1px;
   text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+.win-sub {
+  font-size: 10px;
+  color: #888;
+  letter-spacing: 1px;
+  margin-top: 2px;
 }
 
 .btn-play {

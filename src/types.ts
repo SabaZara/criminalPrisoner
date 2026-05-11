@@ -7,6 +7,8 @@ export type Thug = {
   alive: boolean;
   chosenPath?: Path;
   isPlayer: boolean;
+  /** Round in which this thug was eliminated (undefined if still alive). */
+  eliminatedRound?: number;
 };
 
 export type User = {
@@ -22,10 +24,15 @@ export type User = {
 export type GameRound = {
   id: string;
   bet: number;
+  pool: number;
   thugs: Thug[];
+  rounds: number;
   copPath?: Path;
   won: boolean;
+  /** What the player actually received this game (0 if lost, share of pool if won). */
   payout: number;
+  /** Number of winners that split the pool. */
+  winners: number;
   timestamp: number;
 };
 
@@ -34,4 +41,5 @@ export type GamePhase =
   | 'choosing'
   | 'revealing-bots'
   | 'cop-checking'
-  | 'result';
+  | 'round-result'
+  | 'final-result';
