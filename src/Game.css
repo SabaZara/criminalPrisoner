@@ -15,11 +15,37 @@
   overflow: hidden;
 }
 
+/* Header: timer on the left, title centered. We keep the title visually centered on
+   the page by absolutely positioning it across the row; the timer just floats on the
+   left of the same strip. */
 .stage-header {
-  text-align: center;
-  padding: 14px 20px 10px;
+  position: relative;
+  padding: 14px 24px 12px;
   background: linear-gradient(180deg, rgba(0,0,0,0.6), transparent);
   z-index: 5;
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+}
+.stage-header-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: max-content;
+  pointer-events: none;
+}
+.stage-header .pick-timer {
+  /* override the old absolute positioning so it sits in flow */
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+}
+@media (max-width: 900px) {
+  .stage-header { flex-direction: column; gap: 10px; min-height: 0; }
+  .stage-header-title { position: static; transform: none; }
 }
 .stage-title {
   margin: 0;
@@ -277,26 +303,32 @@
   mix-blend-mode: screen;
 }
 
-/* Sweep: continuously slide L → C → R → C → L with uniform speed (linear).
-   Anchored on the center, the beam glides smoothly out to each side and back
-   without ever pausing on a door. */
+/* Pendulum sweep: anchored at center, swings smoothly out to the left, back
+   through center, out to the right, back through center. ease-in-out makes
+   it slow at the extremes and fast through the middle — that's the natural
+   pendulum motion. The cone also tilts as it swings, like a real searchlight
+   on a hinge.
+   Composite transform: translateX(-50%) is the constant centering offset,
+   then a rotation around the top center (the "lamp pivot"). */
 .searchlight-sweep {
-  animation: searchlightSweep 5s linear infinite;
+  animation: searchlightSwing 5s ease-in-out infinite;
+  transform-origin: 50% 0%;
 }
-@keyframes searchlightSweep {
-  0%   { left: 50%; }
-  25%  { left: 30%; }
-  50%  { left: 50%; }
-  75%  { left: 70%; }
-  100% { left: 50%; }
+@keyframes searchlightSwing {
+  0%   { left: 50%; transform: translateX(-50%) rotate(0deg); }
+  25%  { left: 30%; transform: translateX(-50%) rotate(-12deg); }
+  50%  { left: 50%; transform: translateX(-50%) rotate(0deg); }
+  75%  { left: 70%; transform: translateX(-50%) rotate(12deg); }
+  100% { left: 50%; transform: translateX(-50%) rotate(0deg); }
 }
 
-/* Locked: snap to chosen door, turn red, pulse. */
+/* Locked: snap to chosen door, turn red, pulse. Rotation flattens back to 0. */
 .searchlight-locked {
   --beam-r: 239;
   --beam-g: 68;
   --beam-b: 68;
-  transition: left 0.45s cubic-bezier(0.5, 0, 0.3, 1);
+  transform: translateX(-50%) rotate(0deg);
+  transition: left 0.45s cubic-bezier(0.5, 0, 0.3, 1), transform 0.45s cubic-bezier(0.5, 0, 0.3, 1);
   animation: searchlightLockPulse 0.55s ease-in-out infinite;
 }
 .searchlight-at-A { left: 30%; }
@@ -497,22 +529,18 @@
 /* ===== STOPWATCH-STYLE PICK TIMER =====
    Quiet, detailed, monochrome. No color shifts, no urgent pulse. */
 .pick-timer {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
-  padding: 10px 14px 9px;
-  width: 360px;
+  gap: 6px;
+  padding: 8px 12px 7px;
+  width: 290px;
   background: linear-gradient(180deg, rgba(14, 13, 10, 0.95), rgba(6, 5, 4, 0.95));
   border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 10px;
+  border-radius: 8px;
   z-index: 10;
   box-shadow:
-    0 14px 32px rgba(0,0,0,0.65),
+    0 6px 18px rgba(0,0,0,0.55),
     0 0 0 1px rgba(0,0,0,0.4) inset;
   font-feature-settings: "tnum" 1, "lnum" 1;
 }
@@ -555,18 +583,18 @@
   text-shadow: 0 0 12px rgba(212, 175, 55, 0.15);
 }
 .pick-timer-clock-sec {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .pick-timer-clock-sep {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 700;
   margin: 0 1px;
   opacity: 0.6;
 }
 .pick-timer-clock-cs {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   opacity: 0.75;
