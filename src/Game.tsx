@@ -14,6 +14,7 @@ import {
 import { storage } from './storage';
 import type { GamePhase, Path, Thug } from './types';
 import { TopBar } from './TopBar';
+import bgYard from './assets/img/bg-yard.png';
 import './Game.css';
 
 const BET_STEP = 1000;
@@ -202,9 +203,9 @@ export function Game() {
           </div>
 
           {/* Center: Prison Yard */}
-          <div className="yard">
-            <div className="yard-sky" />
-            <div className="yard-wall">
+          <div className="yard" style={{ backgroundImage: `url(${bgYard})` }}>
+            <div className="yard-vignette" />
+            <div className="yard-wall yard-wall-overlay">
               <div className="watchtower watchtower-left">
                 <div className="tower-roof" />
                 <div className="tower-light" />
