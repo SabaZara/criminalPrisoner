@@ -21,6 +21,11 @@ const BET_STEP = 1000;
 const MIN_BET = 1000;
 const MAX_BET = 1000000;
 
+/** Round pacing (ms). Total target ≈ 5s per round so thugs visibly walk before the cop strikes. */
+const BOT_REVEAL_MS = 700;       // bots commit their pick (sprites snap onto a path)
+const WALK_TO_DOOR_MS = 3000;    // thugs walk up to their doors — spotlight sweeps overhead
+const ROUND_RESULT_MS = 1300;    // pause on the result before the next round starts
+
 const PATH_COLOR: Record<Path, string> = {
   A: '#d4382e',
   B: '#d4af37',
@@ -70,14 +75,14 @@ export function Game() {
     setPhase('choosing');
   };
 
-  /** Run the bot-reveal → cop-check sequence for the current round. */
+  /** Run the bot-reveal → walk → cop-check sequence for the current round. */
   const runRound = () => {
     setPhase('revealing-bots');
 
     const t1 = window.setTimeout(() => {
       setThugs((cur) => pickBotPaths(cur));
       setPhase('cop-checking');
-    }, 700);
+    }, BOT_REVEAL_MS);
     timeouts.current.push(t1);
 
     const t2 = window.setTimeout(() => {
@@ -93,7 +98,7 @@ export function Game() {
             setCopPath(undefined);
             setRound((r) => r + 1);
             setPhase('choosing');
-          }, 1800);
+          }, ROUND_RESULT_MS);
           timeouts.current.push(t3);
           setPhase('round-result');
         } else {
@@ -101,7 +106,7 @@ export function Game() {
         }
         return after;
       });
-    }, 700 + 1400);
+    }, BOT_REVEAL_MS + WALK_TO_DOOR_MS);
     timeouts.current.push(t2);
   };
 
@@ -117,7 +122,7 @@ export function Game() {
   useEffect(() => {
     if (phase !== 'choosing') return;
     if (playerThug.alive) return;
-    const t = window.setTimeout(runRound, 900);
+    const t = window.setTimeout(runRound, 1500);
     timeouts.current.push(t);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
