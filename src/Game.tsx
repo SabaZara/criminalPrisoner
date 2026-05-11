@@ -326,20 +326,43 @@ export function Game() {
               })}
             </div>
 
-            {phase === 'choosing' && playerThug.alive && (
-              <div className={`pick-timer ${pickMsLeft < 1500 ? 'pick-timer-urgent' : ''}`}>
-                <div className="pick-timer-label">
-                  ROUND {round} · {playerThug.chosenPath ? `LOCKED IN — DOOR ${playerThug.chosenPath} (TAP TO CHANGE)` : 'CHOOSE A DOOR'}
+            {phase === 'choosing' && playerThug.alive && (() => {
+              const totalCs = Math.max(0, Math.round(pickMsLeft / 10));
+              const ss = Math.floor(totalCs / 100);
+              const cs = totalCs % 100;
+              const ssStr = String(ss).padStart(2, '0');
+              const csStr = String(cs).padStart(2, '0');
+              return (
+                <div className="pick-timer">
+                  <div className="pick-timer-row">
+                    <div className="pick-timer-meta">
+                      <span className="pick-timer-meta-key">ROUND</span>
+                      <span className="pick-timer-meta-val">{String(round).padStart(2, '0')}</span>
+                    </div>
+                    <div className="pick-timer-clock">
+                      <span className="pick-timer-clock-sec">{ssStr}</span>
+                      <span className="pick-timer-clock-sep">.</span>
+                      <span className="pick-timer-clock-cs">{csStr}</span>
+                    </div>
+                    <div className="pick-timer-meta pick-timer-meta-right">
+                      <span className="pick-timer-meta-key">STATUS</span>
+                      <span className="pick-timer-meta-val">
+                        {playerThug.chosenPath ? `DOOR ${playerThug.chosenPath}` : '—'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="pick-timer-track">
+                    <div
+                      className="pick-timer-fill"
+                      style={{ width: `${(pickMsLeft / PICK_TIMER_MS) * 100}%` }}
+                    />
+                  </div>
+                  <div className="pick-timer-footer">
+                    {playerThug.chosenPath ? 'TAP ANOTHER DOOR TO SWITCH' : 'CHOOSE A DOOR'}
+                  </div>
                 </div>
-                <div className="pick-timer-track">
-                  <div
-                    className="pick-timer-fill"
-                    style={{ width: `${(pickMsLeft / PICK_TIMER_MS) * 100}%` }}
-                  />
-                </div>
-                <div className="pick-timer-seconds">{(pickMsLeft / 1000).toFixed(1)}s</div>
-              </div>
-            )}
+              );
+            })()}
 
             {phase === 'choosing' && !playerThug.alive && (
               <div className="prompt-banner spectate">SPECTATING · BOTS CONTINUE</div>
