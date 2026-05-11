@@ -267,11 +267,20 @@ export function Game() {
             <img className="watchtower-img watchtower-left" src={SPRITES.tower} alt="" />
             <img className="watchtower-img watchtower-right" src={SPRITES.tower} alt="" />
 
-            {/* Big white spotlight: always visible. Sweeps left↔right between rounds, locks on a door when cop checks. */}
-            <div className="spotlight-stage">
-              <div className="spotlight-beam" />
-              <div className="spotlight-pool" />
-            </div>
+            {/* Three short spotlight cones, one above each door. During the pick phase the
+                active one cycles A → B → C → B → A. When the round locks, only the chosen
+                door's cone stays lit (and turns red). */}
+            {PATHS.map((p) => (
+              <div
+                key={p}
+                className={`door-spotlight door-spotlight-${p} ${
+                  copPath === p ? 'door-spotlight-locked' : ''
+                } ${!copPath ? 'door-spotlight-sweep' : 'door-spotlight-idle'}`}
+              >
+                <div className="door-spotlight-beam" />
+                <div className="door-spotlight-pool" />
+              </div>
+            ))}
 
             {PATHS.map((p) => (
               <button

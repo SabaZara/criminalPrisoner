@@ -228,97 +228,111 @@
   .watchtower-img { height: 22%; }
 }
 
-/* ===== BIG WHITE SPOTLIGHT =====
-   The beam emanates from the top-center (between the watchtowers) and
-   widens into a pool at door-level. It rotates left/right (sweep) and
-   locks on a single door when the cop checks.
-   We rotate the whole .spotlight-stage on its top-center pivot. */
-/* Beam now points UP from a pivot near the bottom of the yard toward the doors:
-   wide at the top (on the wall), narrow at the bottom (light source).
-   .spotlight-stage is anchored bottom-center, pivots from its bottom point. */
-.spotlight-stage {
+/* ===== PER-DOOR SPOTLIGHTS =====
+   Three short cones, one centered above each door. Each cone shines DOWN
+   onto its door — narrow at the top (the lamp), wider at the door. During
+   the pick phase only the currently-sweeping door's cone is lit (cycles
+   A → B → C → B → A). When the round locks, only the chosen door's cone
+   stays lit and turns red. */
+.door-spotlight {
   position: absolute;
-  bottom: 18%;
-  left: 50%;
-  width: 26%;
-  height: 78%;
-  margin-left: -13%;
-  transform-origin: 50% 100%; /* pivot at the bottom-center (the "lamp" point) */
+  top: -2%;             /* lamp source just above the wall */
+  width: 16%;
+  height: 36%;          /* short — beam stops around door-bottom */
+  transform: translateX(-50%);
   pointer-events: none;
   z-index: 3;
-  transition: transform 0.7s cubic-bezier(0.6, 0, 0.3, 1);
-  will-change: transform;
-  --beam-color-r: 255;
-  --beam-color-g: 255;
-  --beam-color-b: 220;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  --beam-r: 255;
+  --beam-g: 255;
+  --beam-b: 220;
 }
-.spotlight-beam {
+.door-spotlight-A { left: 30%; }
+.door-spotlight-B { left: 50%; }
+.door-spotlight-C { left: 70%; }
+
+.door-spotlight-beam {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(
-      to top,
-      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.05) 0%,
-      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.18) 30%,
-      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.4) 70%,
-      rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.65) 100%
-    );
-  /* Trapezoid: narrow at the bottom (lamp), wide at the top (where it hits the doors). */
-  clip-path: polygon(0% 0%, 100% 0%, 58% 100%, 42% 100%);
-  filter: blur(6px);
+  background: linear-gradient(
+    to bottom,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.65) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  35%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.2)  70%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.05) 100%
+  );
+  /* Narrow at the top (lamp), wider at the bottom (door) */
+  clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
+  filter: blur(4px);
   mix-blend-mode: screen;
 }
-/* The "pool" of light at the top of the beam — illuminates the door area on the wall. */
-.spotlight-pool {
+.door-spotlight-pool {
   position: absolute;
-  top: -4%;
+  bottom: -6%;
   left: 50%;
   transform: translateX(-50%);
   width: 130%;
-  height: 24%;
+  height: 30%;
   background: radial-gradient(
     ellipse at center,
-    rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.85) 0%,
-    rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.4) 40%,
-    rgba(var(--beam-color-r), var(--beam-color-g), var(--beam-color-b), 0.1) 70%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.85) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  40%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.12) 70%,
     transparent 100%
   );
-  filter: blur(8px);
+  filter: blur(7px);
   mix-blend-mode: screen;
 }
 
-/* Sweep state: rotate continuously between -25° and +25° */
-.spotlight-sweep .spotlight-stage {
-  animation: spotlightSweep 4.5s ease-in-out infinite;
-  transition: none;
+/* Sweep: 5 beats over 3s — A → B → C → B → A → (loop). Each beat = 600ms.
+   We brighten the active one and fade the others quickly. */
+.door-spotlight-sweep { animation-duration: 3s; animation-iteration-count: infinite; animation-timing-function: ease-in-out; }
+.door-spotlight-sweep.door-spotlight-A { animation-name: sweepA; }
+.door-spotlight-sweep.door-spotlight-B { animation-name: sweepB; }
+.door-spotlight-sweep.door-spotlight-C { animation-name: sweepC; }
+
+@keyframes sweepA {
+  0%    { opacity: 1; }   /* beat 1: A */
+  16%   { opacity: 0.05; }
+  20%, 76% { opacity: 0; }
+  80%   { opacity: 0.05; }
+  96%, 100% { opacity: 1; } /* beat 5: back to A */
 }
-@keyframes spotlightSweep {
-  0%   { transform: rotate(-25deg); }
-  50%  { transform: rotate(25deg); }
-  100% { transform: rotate(-25deg); }
+@keyframes sweepB {
+  0%    { opacity: 0; }
+  16%   { opacity: 0.05; }
+  20%, 36% { opacity: 1; } /* beat 2: B (right) */
+  40%   { opacity: 0.05; }
+  44%, 56% { opacity: 0; }
+  60%   { opacity: 0.05; }
+  64%, 76% { opacity: 1; } /* beat 4: B (return) */
+  80%   { opacity: 0.05; }
+  84%, 100% { opacity: 0; }
+}
+@keyframes sweepC {
+  0%, 36% { opacity: 0; }
+  40%   { opacity: 0.05; }
+  44%, 56% { opacity: 1; } /* beat 3: C */
+  60%   { opacity: 0.05; }
+  64%, 100% { opacity: 0; }
 }
 
-/* Locked state: snap onto the chosen door. The .yard has class
-   .spotlight-A | .spotlight-B | .spotlight-C — we rotate accordingly.
-   Pivot is at the bottom, so a negative angle tilts the *top* of the beam left,
-   a positive angle tilts the top to the right. */
-.spotlight-A .spotlight-stage { transform: rotate(-22deg); }
-.spotlight-B .spotlight-stage { transform: rotate(0deg); }
-.spotlight-C .spotlight-stage { transform: rotate(22deg); }
-
-/* When locked, beam turns RED — "the cop found them" */
-.spotlight-locked .spotlight-stage {
-  --beam-color-r: 239;
-  --beam-color-g: 68;
-  --beam-color-b: 68;
+/* Locked: one door's cone stays lit and turns red, the other two stay dark. */
+.door-spotlight-locked {
+  opacity: 1;
+  --beam-r: 239;
+  --beam-g: 68;
+  --beam-b: 68;
+  animation: lockedPulse 0.55s ease-in-out infinite;
 }
-.spotlight-locked .spotlight-beam,
-.spotlight-locked .spotlight-pool {
-  animation: spotlightLockPulse 0.55s ease-in-out infinite;
+@keyframes lockedPulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.7); }
 }
-@keyframes spotlightLockPulse {
-  0%, 100% { filter: blur(6px) brightness(1); }
-  50%      { filter: blur(8px) brightness(1.7); }
+/* Doors that AREN'T locked during a check stay dark. */
+.door-spotlight-idle:not(.door-spotlight-locked) {
+  opacity: 0;
 }
 
 /* Doors — painted PNG sprites. Absolutely positioned to align with the painted paths. */
