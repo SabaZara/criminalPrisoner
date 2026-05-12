@@ -23,9 +23,10 @@ const MAX_BET = 1000000;
 
 /** Round pacing (ms). Total target ≈ 5s per round so thugs visibly walk before the cop strikes. */
 const PICK_TIMER_MS = 5000;      // player has 5s to pick (and can change their mind)
-const BOT_REVEAL_MS = 700;       // bots commit their pick (sprites snap onto a path)
-const WALK_TO_DOOR_MS = 3000;    // thugs walk up to their doors — spotlight sweeps overhead
+const BOT_REVEAL_MS = 200;       // brief pause after pick window closes before cop-check
+const WALK_TO_DOOR_MS = 1500;    // settle time before cop strikes (bots already walked during pick)
 const ROUND_RESULT_MS = 1300;    // pause on the result before the next round starts
+const BOT_SWITCH_PROBABILITY = 0.45; // odds a given bot changes its mind once during the pick window
 
 const PATH_COLOR: Record<Path, string> = {
   A: '#d4382e',
@@ -84,7 +85,9 @@ export function Game() {
     setPhase('choosing');
   };
 
-  /** Run the bot-reveal → walk → cop-check sequence for the current round. */
+  /** Run the bot-reveal → walk → cop-check sequence for the current round.
+   *  Bots already have picks from the indecision effect, but we ensure no alive
+   *  thug is missing a chosenPath (safety net) before the cop strikes. */
   const runRound = () => {
     setPhase('revealing-bots');
 
@@ -179,6 +182,57 @@ export function Game() {
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, playerThug.alive, round]);
+
+  /**
+   * Bot indecision: when the pick phase starts, each alive bot gets an immediate
+   * random path so the wall has visible movement. Some bots will then "change their
+   * mind" once at a random point in the window, walking from their old door to a
+   * different one — same vibe as a real player hesitating.
+   *
+   * The window length depends on who's playing: full PICK_TIMER_MS for the player,
+   * a shorter spectate window when the player is out. Bots' switches must complete
+   * before the round resolves, so we cap switch timing at ~80% of the window.
+   */
+  useEffect(() => {
+    if (phase !== 'choosing') return;
+
+    // Available window before the round resolves
+    const windowMs = playerThug.alive ? PICK_TIMER_MS : 1500;
+
+    // Step 1: every alive bot picks an initial random path immediately.
+    setThugs((cur) =>
+      cur.map((t) => (t.isPlayer || !t.alive ? t : { ...t, chosenPath: pickRandomPath() }))
+    );
+
+    // Step 2: schedule per-bot maybe-switches at random moments.
+    const switchTimers: number[] = [];
+    setThugs((cur) => {
+      cur.forEach((t) => {
+        if (t.isPlayer || !t.alive) return;
+        if (Math.random() > BOT_SWITCH_PROBABILITY) return;
+        // Schedule a switch somewhere in 20%–80% of the window.
+        const delay = windowMs * (0.2 + Math.random() * 0.6);
+        const id = window.setTimeout(() => {
+          setThugs((c) =>
+            c.map((tt) => {
+              if (tt.id !== t.id || !tt.alive) return tt;
+              // Pick a different path than what they're currently on.
+              const others = PATHS.filter((p) => p !== tt.chosenPath);
+              const next = others[Math.floor(Math.random() * others.length)];
+              return { ...tt, chosenPath: next };
+            })
+          );
+        }, delay);
+        switchTimers.push(id);
+      });
+      return cur;
+    });
+
+    return () => {
+      switchTimers.forEach((id) => clearTimeout(id));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, round]);
 
   const finalizeGame = (gameWinners: Thug[], finalThugs: Thug[]) => {
     setWinners(gameWinners);
@@ -335,18 +389,14 @@ export function Game() {
 
             <div className="yard-paths-spacer" />
 
+            {/* Walking-thug overlay. During 'choosing' all thugs (player + bots) are
+                visible on the paths they've picked; bots may "change their mind" and
+                walk to a different door. Everyone has settled by the time the round
+                resolves. */}
             <div className="thug-stage">
               {thugs.map((t, i) => {
                 const path = t.chosenPath;
-                // The PLAYER walks to their chosen door immediately when they pick (or switch).
-                // BOTS only reveal once the round leaves 'choosing', so the wall stays a guessing
-                // game until the spotlight strikes.
-                const revealBot =
-                  phase === 'revealing-bots' ||
-                  phase === 'cop-checking' ||
-                  phase === 'round-result' ||
-                  phase === 'final-result';
-                const reveal = t.isPlayer ? phase !== 'idle' : revealBot;
+                const reveal = phase !== 'idle';
                 const isWinner = winners.some((w) => w.id === t.id);
                 const onPath = reveal && path && t.alive;
                 // Starting x: spread 10 thugs evenly across 15%–85%

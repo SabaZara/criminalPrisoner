@@ -20,10 +20,11 @@ export function pickRandomPath(): Path {
   return PATHS[Math.floor(Math.random() * PATHS.length)];
 }
 
-/** Bots only pick paths if they're still alive and haven't already chosen this round. */
+/** Fill in a random path for any alive bot that doesn't already have one (safety net).
+ *  Does NOT overwrite existing picks — bot indecision logic owns those. */
 export function pickBotPaths(thugs: Thug[]): Thug[] {
   return thugs.map((t) =>
-    t.isPlayer || !t.alive ? t : { ...t, chosenPath: pickRandomPath() }
+    t.isPlayer || !t.alive || t.chosenPath ? t : { ...t, chosenPath: pickRandomPath() }
   );
 }
 
