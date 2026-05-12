@@ -316,9 +316,9 @@
 }
 @keyframes searchlightSwing {
   0%   { left: 50%; transform: translateX(-50%) rotate(0deg); }
-  25%  { left: 30%; transform: translateX(-50%) rotate(-12deg); }
+  25%  { left: 18%; transform: translateX(-50%) rotate(-14deg); }
   50%  { left: 50%; transform: translateX(-50%) rotate(0deg); }
-  75%  { left: 70%; transform: translateX(-50%) rotate(12deg); }
+  75%  { left: 82%; transform: translateX(-50%) rotate(14deg); }
   100% { left: 50%; transform: translateX(-50%) rotate(0deg); }
 }
 
@@ -331,9 +331,10 @@
   transition: left 0.45s cubic-bezier(0.5, 0, 0.3, 1), transform 0.45s cubic-bezier(0.5, 0, 0.3, 1);
   animation: searchlightLockPulse 0.55s ease-in-out infinite;
 }
-.searchlight-at-A { left: 30%; }
-.searchlight-at-B { left: 50%; }
-.searchlight-at-C { left: 70%; }
+.searchlight-at-A { left: 18%; }
+.searchlight-at-B { left: 39%; }
+.searchlight-at-C { left: 61%; }
+.searchlight-at-D { left: 82%; }
 @keyframes searchlightLockPulse {
   0%, 100% { filter: brightness(1); }
   50%      { filter: brightness(1.8); }
@@ -343,8 +344,9 @@
 .door {
   position: absolute;
   top: 7%;
-  width: 13%;
-  max-width: 130px;
+  width: 11%;
+  max-width: 110px;
+  min-width: 56px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -355,9 +357,39 @@
   z-index: 2;
   display: block;
 }
-.door-A { left: 30%; }
-.door-B { left: 50%; }
-.door-C { left: 70%; }
+/* Four doors evenly spaced along the back wall. */
+.door-A { left: 18%; }
+.door-B { left: 39%; }
+.door-C { left: 61%; }
+.door-D { left: 82%; }
+
+/* The 4th door is a recolored copy of door-C so the painted letter says C.
+   Hide that with a CSS-rendered "D" badge on top.
+   Other doors use their painted letter; overlay stays invisible there. */
+.door-letter-overlay {
+  position: absolute;
+  top: 11%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24%;
+  aspect-ratio: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: #1a1410;
+  border: 2px solid #5a4a30;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 900;
+  font-size: 26px;
+  font-family: 'Times New Roman', Georgia, serif;
+  line-height: 1;
+  pointer-events: none;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.door-D .door-letter-overlay { display: flex; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -472,27 +504,19 @@
   top: -14px;
 }
 /* Walk to chosen door: snap to the door's x-position, move up + shrink for perspective. */
-.thug-on-A {
-  left: 30%;
+.thug-on-A,
+.thug-on-B,
+.thug-on-C,
+.thug-on-D {
   bottom: 38%;
   width: 5%;
   min-width: 22px;
   filter: brightness(0.85);
 }
-.thug-on-B {
-  left: 50%;
-  bottom: 38%;
-  width: 5%;
-  min-width: 22px;
-  filter: brightness(0.85);
-}
-.thug-on-C {
-  left: 70%;
-  bottom: 38%;
-  width: 5%;
-  min-width: 22px;
-  filter: brightness(0.85);
-}
+.thug-on-A { left: 18%; }
+.thug-on-B { left: 39%; }
+.thug-on-C { left: 61%; }
+.thug-on-D { left: 82%; }
 /* Caught — slumped over, faded out. */
 .thug-caught {
   filter: grayscale(1) brightness(0.35);
@@ -720,7 +744,31 @@
   backdrop-filter: blur(12px);
 }
 @media (max-width: 700px) {
-  .control-bar { grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+  .control-bar {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    margin: 8px;
+  }
+  .btn-play-main { grid-column: span 2; padding: 14px; font-size: 16px; letter-spacing: 2px; }
+  .bar-label { font-size: 9px; }
+  .bet-value, .win-value { font-size: 18px; }
+  .bet-btn { width: 36px; height: 36px; } /* easier tap target on phones */
+}
+@media (max-width: 480px) {
+  .stage-title { font-size: 16px; letter-spacing: 1px; }
+  .stage-sub { font-size: 10px; letter-spacing: 1.5px; }
+  .pick-timer { width: auto; max-width: 100%; }
+  .pick-timer-clock-sec { font-size: 22px; }
+  .pick-timer-clock-cs { font-size: 14px; }
+  .door { width: 18%; }
+  .control-bar {
+    grid-template-columns: 1fr 1fr;
+    margin: 6px;
+    padding: 8px;
+  }
+  .cop-block { display: none; } /* indicator dots redundant — searchlight does the job */
+  .control-bar { grid-template-columns: 1fr auto; }
   .btn-play-main { grid-column: span 2; }
 }
 

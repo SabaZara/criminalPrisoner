@@ -31,6 +31,7 @@ const PATH_COLOR: Record<Path, string> = {
   A: '#d4382e',
   B: '#d4af37',
   C: '#3a82d4',
+  D: '#c43ad4',
 };
 
 export function Game() {
@@ -260,7 +261,7 @@ export function Game() {
           })()}
           <div className="stage-header-title">
             <h1 className="stage-title">
-              10 THUGS. <span className="accent-gold">3 PATHS.</span> <span className="accent-red">1 COP.</span>
+              10 THUGS. <span className="accent-gold">4 PATHS.</span> <span className="accent-red">1 COP.</span>
             </h1>
             <p className="stage-sub">LAST THUG STANDING TAKES THE POOL</p>
           </div>
@@ -329,6 +330,7 @@ export function Game() {
                 disabled={phase !== 'choosing' || !playerThug.alive}
               >
                 <img className="door-img" src={SPRITES.doors[p]} alt={p} />
+                <span className="door-letter-overlay">{p}</span>
               </button>
             ))}
 

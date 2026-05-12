@@ -20,7 +20,7 @@ export function Login() {
         <div className="login-logo">
           <div className="logo-badge">CP</div>
           <h1>CRIMINAL PRISONER</h1>
-          <p className="tagline">10 THUGS · 3 PATHS · 1 COP</p>
+          <p className="tagline">10 THUGS · 4 PATHS · 1 COP</p>
         </div>
 
         {!showEmail ? (

@@ -3,7 +3,7 @@ import type { Path, Thug } from './types';
 
 const BOT_NAMES = ['Viper', 'Shadow', 'Lucky', 'Blaze', 'Rocco', 'Ghost', 'Tank', 'Joker', 'Bandit', 'Ace'];
 
-export const PATHS: Path[] = ['A', 'B', 'C'];
+export const PATHS: Path[] = ['A', 'B', 'C', 'D'];
 export const TOTAL_THUGS = 10;
 
 export function buildInitialThugs(playerName: string): Thug[] {
@@ -17,7 +17,7 @@ export function buildInitialThugs(playerName: string): Thug[] {
 }
 
 export function pickRandomPath(): Path {
-  return PATHS[Math.floor(Math.random() * 3)];
+  return PATHS[Math.floor(Math.random() * PATHS.length)];
 }
 
 /** Bots only pick paths if they're still alive and haven't already chosen this round. */

@@ -23,4 +23,9 @@ body {
   background: #0a0a0f;
   color: #fff;
   overflow: hidden;
+  /* Mobile hardening — avoid bounce, double-tap zoom, and tap-highlight on buttons */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
+button { -webkit-tap-highlight-color: transparent; }

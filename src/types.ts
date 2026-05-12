@@ -1,4 +1,4 @@
-export type Path = 'A' | 'B' | 'C';
+export type Path = 'A' | 'B' | 'C' | 'D';
 
 export type Thug = {
   id: number;
