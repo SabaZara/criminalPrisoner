@@ -338,14 +338,15 @@ export function Game() {
             <div className="thug-stage">
               {thugs.map((t, i) => {
                 const path = t.chosenPath;
-                // Thugs only "walk" to their door once the round leaves the choosing phase.
-                // During choosing, even if the player has picked, they stay at the bottom so
-                // they can change their mind without an awkward walk-back animation.
-                const reveal =
+                // The PLAYER walks to their chosen door immediately when they pick (or switch).
+                // BOTS only reveal once the round leaves 'choosing', so the wall stays a guessing
+                // game until the spotlight strikes.
+                const revealBot =
                   phase === 'revealing-bots' ||
                   phase === 'cop-checking' ||
                   phase === 'round-result' ||
                   phase === 'final-result';
+                const reveal = t.isPlayer ? phase !== 'idle' : revealBot;
                 const isWinner = winners.some((w) => w.id === t.id);
                 const onPath = reveal && path && t.alive;
                 // Starting x: spread 10 thugs evenly across 15%–85%
