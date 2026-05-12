@@ -316,9 +316,9 @@
 }
 @keyframes searchlightSwing {
   0%   { left: 50%; transform: translateX(-50%) rotate(0deg); }
-  25%  { left: 18%; transform: translateX(-50%) rotate(-14deg); }
+  25%  { left: 22%; transform: translateX(-50%) rotate(-12deg); }
   50%  { left: 50%; transform: translateX(-50%) rotate(0deg); }
-  75%  { left: 82%; transform: translateX(-50%) rotate(14deg); }
+  75%  { left: 78%; transform: translateX(-50%) rotate(12deg); }
   100% { left: 50%; transform: translateX(-50%) rotate(0deg); }
 }
 
@@ -331,22 +331,23 @@
   transition: left 0.45s cubic-bezier(0.5, 0, 0.3, 1), transform 0.45s cubic-bezier(0.5, 0, 0.3, 1);
   animation: searchlightLockPulse 0.55s ease-in-out infinite;
 }
-.searchlight-at-A { left: 18%; }
-.searchlight-at-B { left: 39%; }
-.searchlight-at-C { left: 61%; }
-.searchlight-at-D { left: 82%; }
+.searchlight-at-A { left: 22%; }
+.searchlight-at-B { left: 42%; }
+.searchlight-at-C { left: 58%; }
+.searchlight-at-D { left: 78%; }
 @keyframes searchlightLockPulse {
   0%, 100% { filter: brightness(1); }
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. Absolutely positioned to align with the painted paths. */
+/* Doors — painted PNG sprites. Absolutely positioned to align with the painted paths.
+   Sit just above where the painted paths meet the wall. */
 .door {
   position: absolute;
-  top: 7%;
-  width: 11%;
-  max-width: 110px;
-  min-width: 56px;
+  top: 4%;
+  width: 13%;
+  max-width: 140px;
+  min-width: 64px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -357,39 +358,11 @@
   z-index: 2;
   display: block;
 }
-/* Four doors evenly spaced along the back wall. */
-.door-A { left: 18%; }
-.door-B { left: 39%; }
-.door-C { left: 61%; }
-.door-D { left: 82%; }
-
-/* The 4th door is a recolored copy of door-C so the painted letter says C.
-   Hide that with a CSS-rendered "D" badge on top.
-   Other doors use their painted letter; overlay stays invisible there. */
-.door-letter-overlay {
-  position: absolute;
-  top: 11%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 24%;
-  aspect-ratio: 1;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: #1a1410;
-  border: 2px solid #5a4a30;
-  border-radius: 4px;
-  color: #fff;
-  font-weight: 900;
-  font-size: 26px;
-  font-family: 'Times New Roman', Georgia, serif;
-  line-height: 1;
-  pointer-events: none;
-  box-shadow:
-    0 2px 4px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,255,255,0.1);
-}
-.door-D .door-letter-overlay { display: flex; }
+/* Four doors evenly spaced along the back wall to align with the painted paths. */
+.door-A { left: 22%; }
+.door-B { left: 42%; }
+.door-C { left: 58%; }
+.door-D { left: 78%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -513,10 +486,10 @@
   min-width: 22px;
   filter: brightness(0.85);
 }
-.thug-on-A { left: 18%; }
-.thug-on-B { left: 39%; }
-.thug-on-C { left: 61%; }
-.thug-on-D { left: 82%; }
+.thug-on-A { left: 22%; }
+.thug-on-B { left: 42%; }
+.thug-on-C { left: 58%; }
+.thug-on-D { left: 78%; }
 /* Caught — slumped over, faded out. */
 .thug-caught {
   filter: grayscale(1) brightness(0.35);

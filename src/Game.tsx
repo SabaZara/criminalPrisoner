@@ -330,7 +330,6 @@ export function Game() {
                 disabled={phase !== 'choosing' || !playerThug.alive}
               >
                 <img className="door-img" src={SPRITES.doors[p]} alt={p} />
-                <span className="door-letter-overlay">{p}</span>
               </button>
             ))}
 
