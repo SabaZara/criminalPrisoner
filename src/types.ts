@@ -1,5 +1,8 @@
 export type Path = 'A' | 'B' | 'C' | 'D';
 
+/** Bot decision-making archetypes. Assigned once at game start, persists across rounds. */
+export type Personality = 'risky' | 'safe' | 'random' | 'sticky' | 'flighty';
+
 export type Thug = {
   id: number;
   name: string;
@@ -7,6 +10,8 @@ export type Thug = {
   alive: boolean;
   chosenPath?: Path;
   isPlayer: boolean;
+  /** Bot personality. Undefined for the player. */
+  personality?: Personality;
   /** Round in which this thug was eliminated (undefined if still alive). */
   eliminatedRound?: number;
 };

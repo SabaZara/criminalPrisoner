@@ -1,7 +1,22 @@
 import { SPRITES } from './assets/sprites';
-import type { Path, Thug } from './types';
+import type { Path, Personality, Thug } from './types';
 
 const BOT_NAMES = ['Viper', 'Shadow', 'Lucky', 'Blaze', 'Rocco', 'Ghost', 'Tank', 'Joker', 'Bandit', 'Ace'];
+
+/** Personality assigned to each bot (by index 1-9). Tuned to feel like a varied roster. */
+const BOT_PERSONALITIES: Personality[] = [
+  'random',  // index 0 = player, never used
+  'risky',   // Viper — bets against the crowd
+  'safe',    // Shadow — hides in numbers
+  'random',  // Lucky — pure RNG (his name says it all)
+  'risky',   // Blaze — bold, takes chances
+  'sticky',  // Rocco — commits once and stays
+  'safe',    // Ghost — herd-follower, low profile
+  'sticky',  // Tank — stubborn, doesn't change his mind
+  'flighty', // Joker — chaotic, second-guesses
+  'safe',    // Bandit — calculating, sticks with crowd
+  'flighty', // Ace — gambler, indecisive
+];
 
 export const PATHS: Path[] = ['A', 'B', 'C', 'D'];
 export const TOTAL_THUGS = 10;
@@ -13,11 +28,96 @@ export function buildInitialThugs(playerName: string): Thug[] {
     avatar: SPRITES.thugs[i],
     alive: true,
     isPlayer: i === 0,
+    personality: i === 0 ? undefined : BOT_PERSONALITIES[i],
   }));
 }
 
 export function pickRandomPath(): Path {
   return PATHS[Math.floor(Math.random() * PATHS.length)];
+}
+
+/** Count how many ALIVE thugs are currently committed to each path. */
+export function countByPath(thugs: Thug[]): Record<Path, number> {
+  const counts: Record<Path, number> = { A: 0, B: 0, C: 0, D: 0 };
+  for (const t of thugs) {
+    if (t.alive && t.chosenPath) counts[t.chosenPath] += 1;
+  }
+  return counts;
+}
+
+/** Pick the path with the fewest alive thugs on it (ties broken randomly). */
+function pickLeastCrowded(thugs: Thug[]): Path {
+  const counts = countByPath(thugs);
+  const min = Math.min(...PATHS.map((p) => counts[p]));
+  const cands = PATHS.filter((p) => counts[p] === min);
+  return cands[Math.floor(Math.random() * cands.length)];
+}
+
+/** Pick the path with the most alive thugs (ties broken randomly).
+ *  Falls back to random if all paths are empty. */
+function pickMostCrowded(thugs: Thug[]): Path {
+  const counts = countByPath(thugs);
+  const max = Math.max(...PATHS.map((p) => counts[p]));
+  if (max === 0) return pickRandomPath();
+  const cands = PATHS.filter((p) => counts[p] === max);
+  return cands[Math.floor(Math.random() * cands.length)];
+}
+
+/**
+ * Decide a bot's initial pick for the round based on its personality and the
+ * current crowd distribution. `thugs` should already include earlier-picked
+ * bots so later bots can react to them.
+ */
+export function decideBotPick(thug: Thug, thugs: Thug[]): Path {
+  switch (thug.personality) {
+    case 'risky':
+      // Risk-takers go against the crowd — pick the least-populated path.
+      return pickLeastCrowded(thugs);
+    case 'safe':
+      // Safe players hide in numbers — pick the most-populated path.
+      return pickMostCrowded(thugs);
+    case 'sticky':
+    case 'flighty':
+    case 'random':
+    default:
+      return pickRandomPath();
+  }
+}
+
+/** Per-personality probability that this bot will SWITCH its pick once during
+ *  the pick window. Lower = more decisive. Tuned to feel varied without chaos. */
+const SWITCH_RATE: Record<Personality, number> = {
+  sticky: 0.04, // almost never changes mind
+  safe: 0.10,   // mild reconsideration
+  random: 0.12, // baseline
+  risky: 0.18,  // bolder, might re-evaluate the crowd
+  flighty: 0.32, // indecisive, frequent switches
+};
+
+export function switchProbability(thug: Thug): number {
+  if (!thug.personality) return 0;
+  return SWITCH_RATE[thug.personality];
+}
+
+/** Decide what a bot SWITCHES to (must be different from its current pick).
+ *  Same personality logic applied to the alternatives. */
+export function decideBotSwitch(thug: Thug, thugs: Thug[]): Path {
+  const current = thug.chosenPath;
+  const others = PATHS.filter((p) => p !== current);
+  if (thug.personality === 'risky') {
+    // Re-evaluate against the crowd, but exclude the current path.
+    const counts = countByPath(thugs);
+    const min = Math.min(...others.map((p) => counts[p]));
+    const cands = others.filter((p) => counts[p] === min);
+    return cands[Math.floor(Math.random() * cands.length)];
+  }
+  if (thug.personality === 'safe') {
+    const counts = countByPath(thugs);
+    const max = Math.max(...others.map((p) => counts[p]));
+    const cands = others.filter((p) => counts[p] === max);
+    return cands[Math.floor(Math.random() * cands.length)];
+  }
+  return others[Math.floor(Math.random() * others.length)];
 }
 
 /** Fill in a random path for any alive bot that doesn't already have one (safety net).

@@ -156,7 +156,20 @@
   object-position: center top;
   background: rgba(255,255,255,0.05);
 }
+.player-name-stack { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .player-name { color: #fff; font-weight: 600; }
+.player-personality {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  opacity: 0.85;
+}
+.personality-risky    { color: #ef4444; }
+.personality-safe     { color: #4ade80; }
+.personality-random   { color: #a8a29e; }
+.personality-sticky   { color: #facc15; }
+.personality-flighty  { color: #c084fc; }
+.player-row.dead .player-personality { opacity: 0.3; }
 .player-status {
   font-size: 10px;
   font-weight: 700;
@@ -255,16 +268,17 @@
 }
 
 /* ===== SEARCHLIGHT =====
-   One continuous beam that slides horizontally between the three doors during
-   the pick phase, then snaps to the chosen door (and turns red) when the round
-   locks. The light is always on — only its position changes. */
+   The light source is FIXED at the top center of the yard. Only the angle
+   changes — the beam rotates around its lamp pivot like a real spotlight on
+   a hinge. Position never changes. */
 .searchlight {
   position: absolute;
-  top: -2%;             /* lamp just above the wall */
-  left: 50%;            /* default — will be overridden by sweep/locked classes */
+  top: -2%;
+  left: 50%;
   width: 16%;
-  height: 36%;
-  transform: translateX(-50%);
+  height: 56%;          /* longer beam so the tip can reach outer doors at wider angles */
+  margin-left: -8%;     /* half of width — centers without using transform */
+  transform-origin: 50% 0%; /* rotate around the lamp at the top */
   pointer-events: none;
   z-index: 3;
   --beam-r: 255;
@@ -303,38 +317,33 @@
   mix-blend-mode: screen;
 }
 
-/* Pendulum sweep: anchored at center, swings smoothly out to the left, back
-   through center, out to the right, back through center. ease-in-out makes
-   it slow at the extremes and fast through the middle — that's the natural
-   pendulum motion. The cone also tilts as it swings, like a real searchlight
-   on a hinge.
-   Composite transform: translateX(-50%) is the constant centering offset,
-   then a rotation around the top center (the "lamp pivot"). */
+/* Pendulum sweep: pivot fixed at center top. Pure rotation around the lamp —
+   no translation. ease-in-out gives the natural pendulum slow-at-extremes feel. */
 .searchlight-sweep {
   animation: searchlightSwing 5s ease-in-out infinite;
-  transform-origin: 50% 0%;
 }
 @keyframes searchlightSwing {
-  0%   { left: 50%; transform: translateX(-50%) rotate(0deg); }
-  25%  { left: 22%; transform: translateX(-50%) rotate(-12deg); }
-  50%  { left: 50%; transform: translateX(-50%) rotate(0deg); }
-  75%  { left: 78%; transform: translateX(-50%) rotate(12deg); }
-  100% { left: 50%; transform: translateX(-50%) rotate(0deg); }
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(-38deg); }   /* swung to door A's direction */
+  50%  { transform: rotate(0deg); }
+  75%  { transform: rotate(38deg); }    /* swung to door D's direction */
+  100% { transform: rotate(0deg); }
 }
 
-/* Locked: snap to chosen door, turn red, pulse. Rotation flattens back to 0. */
+/* Locked: rotate to the chosen door's angle, turn red, pulse. */
 .searchlight-locked {
   --beam-r: 239;
   --beam-g: 68;
   --beam-b: 68;
-  transform: translateX(-50%) rotate(0deg);
-  transition: left 0.45s cubic-bezier(0.5, 0, 0.3, 1), transform 0.45s cubic-bezier(0.5, 0, 0.3, 1);
+  transition: transform 0.5s cubic-bezier(0.5, 0, 0.3, 1);
   animation: searchlightLockPulse 0.55s ease-in-out infinite;
 }
-.searchlight-at-A { left: 22%; }
-.searchlight-at-B { left: 42%; }
-.searchlight-at-C { left: 58%; }
-.searchlight-at-D { left: 78%; }
+/* Angle = atan((doorX - 50) / beamHeight) where beamHeight ≈ 56% of yard.
+   For doors at 22 / 42 / 58 / 78, offsets are -28 / -8 / +8 / +28 percent. */
+.searchlight-at-A { transform: rotate(-38deg); }
+.searchlight-at-B { transform: rotate(-13deg); }
+.searchlight-at-C { transform: rotate(13deg); }
+.searchlight-at-D { transform: rotate(38deg); }
 @keyframes searchlightLockPulse {
   0%, 100% { filter: brightness(1); }
   50%      { filter: brightness(1.8); }

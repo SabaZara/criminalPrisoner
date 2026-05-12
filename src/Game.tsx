@@ -7,9 +7,12 @@ import {
   buildInitialThugs,
   calculatePool,
   clearChoices,
+  decideBotPick,
+  decideBotSwitch,
   determineWinners,
   pickBotPaths,
   pickRandomPath,
+  switchProbability,
 } from './gameLogic';
 import { storage } from './storage';
 import type { GamePhase, Path, Thug } from './types';
@@ -26,7 +29,6 @@ const PICK_TIMER_MS = 5000;      // player has 5s to pick (and can change their 
 const BOT_REVEAL_MS = 200;       // brief pause after pick window closes before cop-check
 const WALK_TO_DOOR_MS = 1500;    // settle time before cop strikes (bots already walked during pick)
 const ROUND_RESULT_MS = 1300;    // pause on the result before the next round starts
-const BOT_SWITCH_PROBABILITY = 0.45; // odds a given bot changes its mind once during the pick window
 
 const PATH_COLOR: Record<Path, string> = {
   A: '#d4382e',
@@ -184,41 +186,52 @@ export function Game() {
   }, [phase, playerThug.alive, round]);
 
   /**
-   * Bot indecision: when the pick phase starts, each alive bot gets an immediate
-   * random path so the wall has visible movement. Some bots will then "change their
-   * mind" once at a random point in the window, walking from their old door to a
-   * different one — same vibe as a real player hesitating.
+   * Personality-driven bot decisions during the pick phase.
+   * - Each alive bot picks immediately, using their personality + the running
+   *   crowd state (so bots picking later react to earlier bots).
+   * - Each bot may then "change their mind" once at a random moment in the
+   *   window, with a switch probability driven by personality.
    *
-   * The window length depends on who's playing: full PICK_TIMER_MS for the player,
-   * a shorter spectate window when the player is out. Bots' switches must complete
-   * before the round resolves, so we cap switch timing at ~80% of the window.
+   * Pick order is randomized each round so the safe/risky reactions aren't
+   * deterministic on bot index.
    */
   useEffect(() => {
     if (phase !== 'choosing') return;
 
-    // Available window before the round resolves
     const windowMs = playerThug.alive ? PICK_TIMER_MS : 1500;
 
-    // Step 1: every alive bot picks an initial random path immediately.
-    setThugs((cur) =>
-      cur.map((t) => (t.isPlayer || !t.alive ? t : { ...t, chosenPath: pickRandomPath() }))
-    );
+    // Step 1: sequential initial picks so later bots can read earlier ones.
+    setThugs((cur) => {
+      const bots = cur.filter((t) => !t.isPlayer && t.alive);
+      // Shuffle the pick order each round (Fisher–Yates).
+      const order = [...bots];
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      // Working copy of all thugs that we mutate as each bot picks.
+      let working = cur.map((t) => (t.isPlayer || !t.alive ? t : { ...t, chosenPath: undefined }));
+      for (const bot of order) {
+        const pick = decideBotPick(bot, working);
+        working = working.map((t) => (t.id === bot.id ? { ...t, chosenPath: pick } : t));
+      }
+      return working;
+    });
 
-    // Step 2: schedule per-bot maybe-switches at random moments.
+    // Step 2: schedule per-bot maybe-switches based on personality switch rate.
     const switchTimers: number[] = [];
     setThugs((cur) => {
       cur.forEach((t) => {
         if (t.isPlayer || !t.alive) return;
-        if (Math.random() > BOT_SWITCH_PROBABILITY) return;
-        // Schedule a switch somewhere in 20%–80% of the window.
-        const delay = windowMs * (0.2 + Math.random() * 0.6);
+        if (Math.random() > switchProbability(t)) return;
+        // Schedule a switch somewhere in 25%–75% of the window so it stays
+        // visible and resolves before the cop strikes.
+        const delay = windowMs * (0.25 + Math.random() * 0.5);
         const id = window.setTimeout(() => {
           setThugs((c) =>
             c.map((tt) => {
               if (tt.id !== t.id || !tt.alive) return tt;
-              // Pick a different path than what they're currently on.
-              const others = PATHS.filter((p) => p !== tt.chosenPath);
-              const next = others[Math.floor(Math.random() * others.length)];
+              const next = decideBotSwitch(tt, c);
               return { ...tt, chosenPath: next };
             })
           );
@@ -337,7 +350,14 @@ export function Game() {
                     className={`player-row ${t.alive ? 'alive' : 'dead'} ${t.isPlayer ? 'is-player' : ''} ${isWinner ? 'is-winner' : ''}`}
                   >
                     <img className="avatar avatar-img" src={t.avatar} alt={t.name} />
-                    <div className="player-name">{t.id}. {t.name}</div>
+                    <div className="player-name-stack">
+                      <div className="player-name">{t.id}. {t.name}</div>
+                      {t.personality && (
+                        <div className={`player-personality personality-${t.personality}`}>
+                          {t.personality.toUpperCase()}
+                        </div>
+                      )}
+                    </div>
                     <div className="player-status">
                       {isWinner ? '★ WIN' : t.alive ? 'ALIVE' : `R${t.eliminatedRound}`}
                     </div>
