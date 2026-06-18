@@ -308,9 +308,9 @@
 }
 @keyframes searchlightSwing {
   0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-42deg); }   /* swung to door A's direction */
+  25%  { transform: rotate(-35deg); }   /* swung to door A's direction */
   50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(42deg); }    /* swung to door D's direction */
+  75%  { transform: rotate(35deg); }    /* swung to door D's direction */
   100% { transform: rotate(0deg); }
 }
 
@@ -328,15 +328,17 @@
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. Sit at the FAR end of each painted path, set
-   into the back wall where each path terminates. The dirt lanes converge here,
-   so the doors are evenly spaced across the upper-middle of the wall. */
+/* Doors — painted PNG sprites. EMBEDDED in the back wall at the end of each
+   painted path, with their base flush with where the dirt meets the wall.
+   The wall surface in bg-yard.png ends around y: 30%, so the gate's bottom
+   sits at top: ~30% (i.e. bottom: ~70%). Gates are narrow because the paths
+   are at their vanishing point here. */
 .door {
   position: absolute;
-  top: 22%;          /* sit at the wall, just below its top edge */
-  width: 11%;
-  max-width: 130px;
-  min-width: 58px;
+  bottom: 70%;       /* base flush with wall-dirt boundary */
+  width: 9%;
+  max-width: 110px;
+  min-width: 48px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -348,11 +350,11 @@
   display: block;
 }
 /* Paths converge at the wall in a narrower span than they fan out at the
-   bottom — so door x-positions are closer together than thug start positions. */
-.door-A { left: 26%; }
-.door-B { left: 42%; }
-.door-C { left: 58%; }
-.door-D { left: 74%; }
+   bottom — door x-positions are closer together than thug start positions. */
+.door-A { left: 28%; }
+.door-B { left: 43%; }
+.door-C { left: 57%; }
+.door-D { left: 72%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -467,20 +469,20 @@
   top: -14px;
 }
 /* Walk to chosen door: thugs walk UP the path to the gate at the wall.
-   They end up smaller (perspective) and stand just in front of each door. */
+   They end up smaller (perspective) and stand just in front of each gate. */
 .thug-on-A,
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  bottom: 50%;
-  width: 5%;
-  min-width: 22px;
+  bottom: 65%;       /* just below the gate base (which sits at bottom: 70%) */
+  width: 4%;
+  min-width: 20px;
   filter: brightness(0.85);
 }
-.thug-on-A { left: 26%; }
-.thug-on-B { left: 42%; }
-.thug-on-C { left: 58%; }
-.thug-on-D { left: 74%; }
+.thug-on-A { left: 28%; }
+.thug-on-B { left: 43%; }
+.thug-on-C { left: 57%; }
+.thug-on-D { left: 72%; }
 /* Caught — slumped over, faded out. */
 .thug-caught {
   filter: grayscale(1) brightness(0.35);

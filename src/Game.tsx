@@ -86,12 +86,12 @@ export function Game() {
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
-   *  Doors at offsets -24/-8/+8/+24 from center → approx angles ±42° / ±18°.
-   *  Boundaries split halfway: ±30° between A/B and C/D, 0° between B/C. */
+   *  Doors at offsets -22/-7/+7/+22 from center → approx angles ±35° / ±12°.
+   *  Boundaries split halfway between adjacent door angles. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -30) return 'A';
+    if (angle < -23) return 'A';
     if (angle < 0) return 'B';
-    if (angle < 30) return 'C';
+    if (angle < 23) return 'C';
     return 'D';
   };
 
