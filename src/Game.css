@@ -331,14 +331,14 @@
 /* Doors — painted PNG sprites. EMBEDDED in the back wall at the end of each
    painted path, with their base flush with where the dirt meets the wall.
    The wall surface in bg-yard.png ends around y: 30%, so the gate's bottom
-   sits at top: ~30% (i.e. bottom: ~70%). Gates are narrow because the paths
-   are at their vanishing point here. */
+   sits at top: ~30% (i.e. bottom: ~64%). Sized large enough to read as real
+   prison gates, with usable tap targets. */
 .door {
   position: absolute;
-  bottom: 70%;       /* base flush with wall-dirt boundary */
-  width: 9%;
-  max-width: 110px;
-  min-width: 48px;
+  bottom: 64%;       /* base flush with wall-dirt boundary */
+  width: 14%;
+  max-width: 160px;
+  min-width: 72px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -468,16 +468,18 @@
   position: absolute;
   top: -14px;
 }
-/* Walk to chosen door: thugs walk UP the path to the gate at the wall.
-   They end up smaller (perspective) and stand just in front of each gate. */
+/* Walk to chosen door: thugs walk UP the path toward the gate but stop
+   partway, leaving breathing room between them and the gate at the wall.
+   Gates sit at bottom: 64% — thugs stop around bottom: 42% so there's a
+   clear gap. Perspective-shrunk because they're further away. */
 .thug-on-A,
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  bottom: 65%;       /* just below the gate base (which sits at bottom: 70%) */
-  width: 4%;
-  min-width: 20px;
-  filter: brightness(0.85);
+  bottom: 42%;
+  width: 5%;
+  min-width: 26px;
+  filter: brightness(0.88);
 }
 .thug-on-A { left: 28%; }
 .thug-on-B { left: 43%; }
@@ -696,50 +698,77 @@
   50% { transform: translateY(-8px); }
 }
 
-/* Big centered PLAY FAB between the yard and the control bar — the primary
-   action gets pride of place. */
-.play-fab-row {
-  display: flex;
-  justify-content: center;
-  padding: 6px 16px 0;
-}
-.btn-play-fab {
-  min-width: 240px;
-  padding: 18px 56px;
-  font-size: 22px;
-  letter-spacing: 6px;
-  border-radius: 14px;
-}
-
-/* Bottom control bar: bet on the left, pool on the right. */
-.control-bar {
+/* Unified console bar: bet on the left, big PLAY in the center, pool on
+   the right. One coherent control panel that frames the action button. */
+.console-bar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
   gap: 16px;
-  align-items: center;
+  align-items: stretch;
   padding: 14px 20px;
   margin: 10px 16px 14px;
-  background: linear-gradient(180deg, rgba(20, 20, 28, 0.95), rgba(10, 10, 16, 0.95));
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(20, 20, 28, 0.96), rgba(10, 10, 16, 0.96));
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 16px;
   backdrop-filter: blur(12px);
+  box-shadow:
+    0 -10px 30px -10px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(212, 175, 55, 0.08);
 }
-@media (max-width: 700px) {
-  .control-bar {
-    gap: 10px;
-    padding: 10px;
-    margin: 8px;
+.console-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.console-bet { align-items: flex-start; }
+.console-pool { align-items: flex-end; text-align: right; }
+.console-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: rgba(212, 175, 55, 0.7);
+}
+
+/* The big PLAY in the middle of the console */
+.btn-play-console {
+  min-width: 200px;
+  padding: 18px 48px;
+  font-size: 22px;
+  letter-spacing: 5px;
+  border-radius: 12px;
+  align-self: center;
+}
+
+@media (max-width: 900px) {
+  .console-bar {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    padding: 12px 14px;
   }
-  .bar-label { font-size: 9px; }
-  .bet-value, .win-value { font-size: 18px; }
-  .bet-btn { width: 36px; height: 36px; }
-  .btn-play-fab {
+  .btn-play-console {
     min-width: 0;
-    width: calc(100% - 32px);
-    padding: 14px;
+    padding: 14px 28px;
     font-size: 18px;
     letter-spacing: 3px;
   }
+}
+@media (max-width: 600px) {
+  .console-bar {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "bet pool"
+      "play play";
+    gap: 8px;
+    padding: 10px;
+    margin: 8px;
+  }
+  .console-bet { grid-area: bet; }
+  .console-pool { grid-area: pool; }
+  .btn-play-console { grid-area: play; padding: 14px; font-size: 16px; letter-spacing: 3px; width: 100%; }
+  .console-label { font-size: 9px; }
+  .bet-value, .win-value { font-size: 18px; }
+  .bet-btn { width: 36px; height: 36px; }
 }
 @media (max-width: 480px) {
   .stage-title { font-size: 16px; letter-spacing: 1px; }
@@ -747,20 +776,9 @@
   .pick-timer { width: auto; max-width: 100%; }
   .pick-timer-clock-sec { font-size: 22px; }
   .pick-timer-clock-cs { font-size: 14px; }
-  .door { width: 14%; }
-  .control-bar {
-    margin: 6px;
-    padding: 8px;
-  }
+  .door { width: 16%; }
 }
 
-.bar-label {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #888;
-  margin-bottom: 4px;
-}
 
 .bet-controls {
   display: flex;

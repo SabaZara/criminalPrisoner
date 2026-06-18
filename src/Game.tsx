@@ -523,21 +523,11 @@ export function Game() {
           </div>
         </div>
 
-        {/* Big centered PLAY button — the primary action, given pride of place. */}
-        <div className="play-fab-row">
-          <button
-            className="btn-play btn-play-fab"
-            onClick={startGame}
-            disabled={phase !== 'idle'}
-          >
-            {errorMsg ? errorMsg : phase === 'idle' ? 'PLAY' : `ROUND ${round}`}
-          </button>
-        </div>
-
-        {/* Bottom control bar — bet on the left, pool on the right. */}
-        <div className="control-bar">
-          <div className="bet-block">
-            <div className="bar-label">YOUR ANTE</div>
+        {/* Unified bottom console: bet on the left, PLAY in the middle, pool
+            on the right. One coherent control panel instead of two rows. */}
+        <div className="console-bar">
+          <div className="console-cell console-bet">
+            <div className="console-label">YOUR ANTE</div>
             <div className="bet-controls">
               <button className="bet-btn" onClick={() => adjustBet(-1)} disabled={phase !== 'idle'}>−</button>
               <div className="bet-value">{bet.toLocaleString()}</div>
@@ -545,8 +535,16 @@ export function Game() {
             </div>
           </div>
 
-          <div className="win-block">
-            <div className="bar-label">PRIZE POOL</div>
+          <button
+            className="btn-play btn-play-console"
+            onClick={startGame}
+            disabled={phase !== 'idle'}
+          >
+            {errorMsg ? errorMsg : phase === 'idle' ? 'PLAY' : `ROUND ${round}`}
+          </button>
+
+          <div className="console-cell console-pool">
+            <div className="console-label">PRIZE POOL</div>
             <div className="win-value">{pool.toLocaleString()}</div>
             {phase !== 'idle' && winners.length === 0 && (
               <div className="win-sub">if solo win</div>
