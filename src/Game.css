@@ -696,14 +696,29 @@
   50% { transform: translateY(-8px); }
 }
 
-/* Bottom control bar */
+/* Big centered PLAY FAB between the yard and the control bar — the primary
+   action gets pride of place. */
+.play-fab-row {
+  display: flex;
+  justify-content: center;
+  padding: 6px 16px 0;
+}
+.btn-play-fab {
+  min-width: 240px;
+  padding: 18px 56px;
+  font-size: 22px;
+  letter-spacing: 6px;
+  border-radius: 14px;
+}
+
+/* Bottom control bar: bet on the left, pool on the right. */
 .control-bar {
   display: grid;
-  grid-template-columns: 1.4fr 1fr auto;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   align-items: center;
   padding: 14px 20px;
-  margin: 12px 16px 14px;
+  margin: 10px 16px 14px;
   background: linear-gradient(180deg, rgba(20, 20, 28, 0.95), rgba(10, 10, 16, 0.95));
   border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 14px;
@@ -711,15 +726,20 @@
 }
 @media (max-width: 700px) {
   .control-bar {
-    grid-template-columns: 1fr 1fr;
     gap: 10px;
     padding: 10px;
     margin: 8px;
   }
-  .btn-play-main { grid-column: span 2; padding: 14px; font-size: 16px; letter-spacing: 2px; }
   .bar-label { font-size: 9px; }
   .bet-value, .win-value { font-size: 18px; }
-  .bet-btn { width: 36px; height: 36px; } /* easier tap target on phones */
+  .bet-btn { width: 36px; height: 36px; }
+  .btn-play-fab {
+    min-width: 0;
+    width: calc(100% - 32px);
+    padding: 14px;
+    font-size: 18px;
+    letter-spacing: 3px;
+  }
 }
 @media (max-width: 480px) {
   .stage-title { font-size: 16px; letter-spacing: 1px; }
@@ -727,14 +747,11 @@
   .pick-timer { width: auto; max-width: 100%; }
   .pick-timer-clock-sec { font-size: 22px; }
   .pick-timer-clock-cs { font-size: 14px; }
-  .door { width: 18%; }
+  .door { width: 14%; }
   .control-bar {
-    grid-template-columns: 1fr 1fr;
     margin: 6px;
     padding: 8px;
   }
-  .control-bar { grid-template-columns: 1fr auto; }
-  .btn-play-main { grid-column: span 2; }
 }
 
 .bar-label {
@@ -825,11 +842,6 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-.btn-play-main {
-  padding: 16px 32px;
-  font-size: 20px;
-}
-
 /* scrollbar */
 .players-list::-webkit-scrollbar { width: 4px; }
 .players-list::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }

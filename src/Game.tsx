@@ -523,7 +523,18 @@ export function Game() {
           </div>
         </div>
 
-        {/* Bottom control bar */}
+        {/* Big centered PLAY button — the primary action, given pride of place. */}
+        <div className="play-fab-row">
+          <button
+            className="btn-play btn-play-fab"
+            onClick={startGame}
+            disabled={phase !== 'idle'}
+          >
+            {errorMsg ? errorMsg : phase === 'idle' ? 'PLAY' : `ROUND ${round}`}
+          </button>
+        </div>
+
+        {/* Bottom control bar — bet on the left, pool on the right. */}
         <div className="control-bar">
           <div className="bet-block">
             <div className="bar-label">YOUR ANTE</div>
@@ -544,14 +555,6 @@ export function Game() {
               <div className="win-sub">{sharePerWinner.toLocaleString()} ea ({winners.length}-way)</div>
             )}
           </div>
-
-          <button
-            className="btn-play btn-play-main"
-            onClick={startGame}
-            disabled={phase !== 'idle'}
-          >
-            {errorMsg ? errorMsg : phase === 'idle' ? 'PLAY' : `R${round}`}
-          </button>
         </div>
       </div>
 

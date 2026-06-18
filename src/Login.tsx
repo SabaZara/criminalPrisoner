@@ -2,15 +2,40 @@ import { useState } from 'react';
 import { useAuth } from './auth';
 import './Login.css';
 
-export function Login() {
-  const { loginGuest, loginGoogle, loginEmail } = useAuth();
-  const [showEmail, setShowEmail] = useState(false);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+type EmailMode = 'closed' | 'signin' | 'signup';
 
-  const submitEmail = (e: React.FormEvent) => {
+export function Login() {
+  const { loginGuest, loginGoogle, signIn, signUp } = useAuth();
+  const [mode, setMode] = useState<EmailMode>('closed');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const reset = () => {
+    setName('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setError('');
+  };
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && name) loginEmail(email, name);
+    setError('');
+    if (mode === 'signup' && password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+    setBusy(true);
+    const result =
+      mode === 'signup'
+        ? await signUp(name, email, password)
+        : await signIn(email, password);
+    setBusy(false);
+    if (!result.ok) setError(result.error);
   };
 
   return (
@@ -23,7 +48,7 @@ export function Login() {
           <p className="tagline">10 THUGS · 4 PATHS · 1 COP</p>
         </div>
 
-        {!showEmail ? (
+        {mode === 'closed' ? (
           <div className="login-buttons">
             <button className="btn btn-google" onClick={loginGoogle}>
               <svg width="18" height="18" viewBox="0 0 18 18">
@@ -49,37 +74,88 @@ export function Login() {
             <button className="btn btn-guest" onClick={loginGuest}>
               Play as Guest
             </button>
-            <button className="btn btn-link" onClick={() => setShowEmail(true)}>
-              Sign in with Email
+            <button className="btn btn-primary" onClick={() => setMode('signup')}>
+              Create Account
+            </button>
+            <button className="btn btn-link" onClick={() => setMode('signin')}>
+              Already have an account? Sign In
             </button>
           </div>
         ) : (
-          <form className="login-form" onSubmit={submitEmail}>
-            <input
-              type="text"
-              placeholder="Display name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+          <form className="login-form" onSubmit={submit}>
+            <div className="login-tabs">
+              <button
+                type="button"
+                className={`login-tab ${mode === 'signin' ? 'active' : ''}`}
+                onClick={() => { setMode('signin'); reset(); }}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                className={`login-tab ${mode === 'signup' ? 'active' : ''}`}
+                onClick={() => { setMode('signup'); reset(); }}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            {mode === 'signup' && (
+              <input
+                type="text"
+                placeholder="Display name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
+                required
+              />
+            )}
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
-            <button type="submit" className="btn btn-primary">
-              Sign In
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+              minLength={6}
+              required
+            />
+            {mode === 'signup' && (
+              <input
+                type="password"
+                placeholder="Confirm password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+            )}
+
+            {error && <div className="login-error">{error}</div>}
+
+            <button type="submit" className="btn btn-primary" disabled={busy}>
+              {busy ? '…' : mode === 'signup' ? 'Create Account' : 'Sign In'}
             </button>
-            <button type="button" className="btn btn-link" onClick={() => setShowEmail(false)}>
+            <button
+              type="button"
+              className="btn btn-link"
+              onClick={() => { setMode('closed'); reset(); }}
+            >
               ← Back
             </button>
           </form>
         )}
 
         <p className="login-footer">
-          Demo mode · No real money · localStorage only
+          Demo mode · No real money · stored only in your browser
         </p>
       </div>
     </div>
