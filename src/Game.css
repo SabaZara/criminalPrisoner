@@ -260,7 +260,7 @@
   top: -2%;
   left: 50%;
   width: 14%;
-  height: 86%;          /* long enough that the cone tip reaches the gates near the camera */
+  height: 32%;          /* short — beam reaches just down to the doors at the wall */
   margin-left: -7%;     /* half of width — centers without using transform */
   transform-origin: 50% 0%; /* rotate around the lamp at the top */
   pointer-events: none;
@@ -308,41 +308,35 @@
 }
 @keyframes searchlightSwing {
   0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-24deg); }   /* swung to door A's direction */
+  25%  { transform: rotate(-42deg); }   /* swung to door A's direction */
   50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(24deg); }    /* swung to door D's direction */
+  75%  { transform: rotate(42deg); }    /* swung to door D's direction */
   100% { transform: rotate(0deg); }
 }
 
-/* Locked: rotate to the chosen door's angle, turn red, pulse. */
+/* Locked: turn red and pulse brightness. The transform is FROZEN at whatever
+   live sweep angle the beam was at when the cop struck — set via inline style
+   from JS — so we do not animate or override transform here. */
 .searchlight-locked {
   --beam-r: 239;
   --beam-g: 68;
   --beam-b: 68;
-  transition: transform 0.5s cubic-bezier(0.5, 0, 0.3, 1);
   animation: searchlightLockPulse 0.55s ease-in-out infinite;
 }
-/* Angle = atan((doorX - 50) / beamHeight) where beamHeight ≈ 86% of yard.
-   For doors at 14 / 38 / 62 / 86, offsets are -36 / -12 / +12 / +36 percent.
-   atan(36/86) ≈ 23°, atan(12/86) ≈ 8°. */
-.searchlight-at-A { transform: rotate(-23deg); }
-.searchlight-at-B { transform: rotate(-8deg); }
-.searchlight-at-C { transform: rotate(8deg); }
-.searchlight-at-D { transform: rotate(23deg); }
 @keyframes searchlightLockPulse {
   0%, 100% { filter: brightness(1); }
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. Sit at the NEAR end of each path (closest to
-   the camera), where the painted dirt lanes fan out at the bottom of the yard.
-   Because they're closer to the camera they're larger than the back-wall version. */
+/* Doors — painted PNG sprites. Sit at the FAR end of each painted path, set
+   into the back wall where each path terminates. The dirt lanes converge here,
+   so the doors are evenly spaced across the upper-middle of the wall. */
 .door {
   position: absolute;
-  bottom: 18%;
-  width: 17%;
-  max-width: 200px;
-  min-width: 80px;
+  top: 22%;          /* sit at the wall, just below its top edge */
+  width: 11%;
+  max-width: 130px;
+  min-width: 58px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -353,11 +347,12 @@
   z-index: 2;
   display: block;
 }
-/* Four doors spaced along the near end of the paths. */
-.door-A { left: 14%; }
-.door-B { left: 38%; }
-.door-C { left: 62%; }
-.door-D { left: 86%; }
+/* Paths converge at the wall in a narrower span than they fan out at the
+   bottom — so door x-positions are closer together than thug start positions. */
+.door-A { left: 26%; }
+.door-B { left: 42%; }
+.door-C { left: 58%; }
+.door-D { left: 74%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -471,23 +466,21 @@
   position: absolute;
   top: -14px;
 }
-/* Walk to chosen door: stop just in front of the gate at its x-position.
-   Doors sit at bottom: 18% so the gate floor is around bottom: 17–18% —
-   we plant the thug right at that footing so it looks like they're standing
-   at the entrance. */
+/* Walk to chosen door: thugs walk UP the path to the gate at the wall.
+   They end up smaller (perspective) and stand just in front of each door. */
 .thug-on-A,
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  bottom: 14%;
-  width: 7%;
-  min-width: 32px;
-  filter: brightness(0.95);
+  bottom: 50%;
+  width: 5%;
+  min-width: 22px;
+  filter: brightness(0.85);
 }
-.thug-on-A { left: 14%; }
-.thug-on-B { left: 38%; }
-.thug-on-C { left: 62%; }
-.thug-on-D { left: 86%; }
+.thug-on-A { left: 26%; }
+.thug-on-B { left: 42%; }
+.thug-on-C { left: 58%; }
+.thug-on-D { left: 74%; }
 /* Caught — slumped over, faded out. */
 .thug-caught {
   filter: grayscale(1) brightness(0.35);
@@ -971,4 +964,67 @@
 .char-picker-cancel:hover {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Big circular countdown badge above the picker title. */
+.char-picker-timer {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin-bottom: 18px;
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 0 24px rgba(212, 175, 55, 0.35));
+}
+.char-picker-timer-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* start arc at 12 o'clock */
+}
+.char-picker-timer-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 6;
+}
+.char-picker-timer-fill {
+  fill: none;
+  stroke: #f4d04a;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 100ms linear, stroke 0.2s ease;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+}
+.char-picker-timer-num {
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 64px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #fff 0%, #f7e08a 35%, #d4af37 80%, #8a6a14 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  line-height: 1;
+  letter-spacing: -2px;
+  text-shadow: 0 2px 12px rgba(212, 175, 55, 0.4);
+}
+.char-picker-timer-urgent .char-picker-timer-fill {
+  stroke: #ef4444;
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+}
+.char-picker-timer-urgent .char-picker-timer-num {
+  background: linear-gradient(180deg, #fff 0%, #fca5a5 50%, #ef4444 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 16px rgba(239, 68, 68, 0.6);
+}
+.char-picker-timer-urgent {
+  filter: drop-shadow(0 0 32px rgba(239, 68, 68, 0.55));
+  animation: pickerTimerPulse 0.5s ease-in-out infinite;
+}
+@keyframes pickerTimerPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.07); }
 }

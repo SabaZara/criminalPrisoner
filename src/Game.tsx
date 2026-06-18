@@ -51,9 +51,13 @@ export function Game() {
   const [errorMsg, setErrorMsg] = useState('');
   /** ms remaining in the pick phase. >0 only while phase === 'choosing'. */
   const [pickMsLeft, setPickMsLeft] = useState(0);
+  /** When the cop strikes we freeze the beam at its live sweep angle (not snap to a
+   *  fixed door angle). This is the angle in degrees we lock to. */
+  const [frozenAngle, setFrozenAngle] = useState<number | null>(null);
   const timeouts = useRef<number[]>([]);
   const tickInterval = useRef<number | null>(null);
   const pickDeadline = useRef<number>(0);
+  const searchlightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
@@ -65,6 +69,31 @@ export function Game() {
   const playerThug = thugs.find((t) => t.isPlayer) ?? thugs[0];
   const aliveCount = thugs.filter((t) => t.alive).length;
   const pool = useMemo(() => calculatePool(bet), [bet]);
+
+  /** Read the live rotation angle (in degrees) from the searchlight DOM element's
+   *  computed transform matrix. Returns 0 if the element isn't there yet. */
+  const readSearchlightAngle = (): number => {
+    const el = searchlightRef.current;
+    if (!el) return 0;
+    const matrix = window.getComputedStyle(el).transform;
+    if (!matrix || matrix === 'none') return 0;
+    // matrix(a, b, c, d, tx, ty) — rotation = atan2(b, a)
+    const m = matrix.match(/matrix\(([^)]+)\)/);
+    if (!m) return 0;
+    const [a, b] = m[1].split(',').map(Number);
+    const rad = Math.atan2(b, a);
+    return rad * (180 / Math.PI);
+  };
+
+  /** Map a beam angle (degrees) to the door it's currently pointing at.
+   *  Doors at offsets -24/-8/+8/+24 from center → approx angles ±42° / ±18°.
+   *  Boundaries split halfway: ±30° between A/B and C/D, 0° between B/C. */
+  const angleToDoor = (angle: number): Path => {
+    if (angle < -30) return 'A';
+    if (angle < 0) return 'B';
+    if (angle < 30) return 'C';
+    return 'D';
+  };
 
   const adjustBet = (dir: 1 | -1) => {
     if (phase !== 'idle') return;
@@ -89,6 +118,7 @@ export function Game() {
     updateBalance(-bet);
     setThugs(buildInitialThugs(user.name, slot));
     setCopPath(undefined);
+    setFrozenAngle(null);
     setRound(1);
     setWinners([]);
     setPayoutToPlayer(0);
@@ -108,7 +138,11 @@ export function Game() {
     timeouts.current.push(t1);
 
     const t2 = window.setTimeout(() => {
-      const cp = pickRandomPath();
+      // Cop targets whichever door the spotlight is naturally pointing at right
+      // now — the beam doesn't snap, it just freezes. Read live angle, map to door.
+      const angle = readSearchlightAngle();
+      const cp = angleToDoor(angle);
+      setFrozenAngle(angle);
       setCopPath(cp);
       setThugs((cur) => {
         const after = applyCopCheck(cur, cp, round);
@@ -118,6 +152,7 @@ export function Game() {
           const t3 = window.setTimeout(() => {
             setThugs((c2) => clearChoices(c2));
             setCopPath(undefined);
+            setFrozenAngle(null);
             setRound((r) => r + 1);
             setPhase('choosing');
           }, ROUND_RESULT_MS);
@@ -282,6 +317,7 @@ export function Game() {
   const reset = () => {
     setPhase('idle');
     setCopPath(undefined);
+    setFrozenAngle(null);
     setRound(1);
     setWinners([]);
     setPayoutToPlayer(0);
@@ -387,13 +423,13 @@ export function Game() {
           >
             <div className="yard-vignette" />
 
-            {/* Single searchlight cone that physically slides A → B → C → B → A across
-                the back wall. When the round locks, the cone snaps to the chosen door
-                and turns red. The beam itself never goes off. */}
+            {/* Searchlight: sweeps continuously on a center pivot. When the cop
+                strikes, we FREEZE the beam at its current live angle (not snap to
+                a chosen door). The door beneath the beam tip is the one eliminated. */}
             <div
-              className={`searchlight ${
-                copPath ? `searchlight-locked searchlight-at-${copPath}` : 'searchlight-sweep'
-              }`}
+              ref={searchlightRef}
+              className={`searchlight ${copPath ? 'searchlight-locked' : 'searchlight-sweep'}`}
+              style={frozenAngle !== null ? { transform: `rotate(${frozenAngle}deg)` } : undefined}
             >
               <div className="searchlight-beam" />
               <div className="searchlight-pool" />
@@ -567,13 +603,30 @@ function CharacterPicker({
     onConfirm(slot);
   };
 
-  const seconds = (msLeft / 1000).toFixed(1);
+  const seconds = Math.ceil(msLeft / 1000);
+  const urgent = msLeft < 3000;
+  const progress = Math.max(0, Math.min(1, msLeft / 10000));
+  const circumference = 2 * Math.PI * 50;
   return (
     <div className="char-picker">
+      <div className={`char-picker-timer ${urgent ? 'char-picker-timer-urgent' : ''}`}>
+        <svg viewBox="0 0 120 120" className="char-picker-timer-svg">
+          <circle cx="60" cy="60" r="50" className="char-picker-timer-track" />
+          <circle
+            cx="60"
+            cy="60"
+            r="50"
+            className="char-picker-timer-fill"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference * (1 - progress)}
+          />
+        </svg>
+        <div className="char-picker-timer-num">{seconds}</div>
+      </div>
       <div className="char-picker-head">
         <div className="char-picker-title">CHOOSE YOUR CHARACTER</div>
         <div className="char-picker-sub">
-          Tap a thug to play as them — {seconds}s before a random pick
+          Tap a thug to play as them, or a random one is picked when time runs out
         </div>
       </div>
       <div className="char-picker-grid">
