@@ -251,22 +251,6 @@
 
 /* Doors are absolutely positioned to sit on top of each painted path's vanishing point at the wall. */
 
-/* Watchtowers — painted PNG sprites */
-.watchtower-img {
-  position: absolute;
-  top: 2%;
-  height: 28%;
-  width: auto;
-  z-index: 2;
-  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.6));
-  pointer-events: none;
-}
-.watchtower-left { left: 4%; }
-.watchtower-right { right: 4%; transform: scaleX(-1); }
-@media (max-width: 900px) {
-  .watchtower-img { height: 22%; }
-}
-
 /* ===== SEARCHLIGHT =====
    The light source is FIXED at the top center of the yard. Only the angle
    changes — the beam rotates around its lamp pivot like a real spotlight on
@@ -275,9 +259,9 @@
   position: absolute;
   top: -2%;
   left: 50%;
-  width: 16%;
-  height: 56%;          /* longer beam so the tip can reach outer doors at wider angles */
-  margin-left: -8%;     /* half of width — centers without using transform */
+  width: 14%;
+  height: 86%;          /* long enough that the cone tip reaches the gates near the camera */
+  margin-left: -7%;     /* half of width — centers without using transform */
   transform-origin: 50% 0%; /* rotate around the lamp at the top */
   pointer-events: none;
   z-index: 3;
@@ -324,9 +308,9 @@
 }
 @keyframes searchlightSwing {
   0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-38deg); }   /* swung to door A's direction */
+  25%  { transform: rotate(-24deg); }   /* swung to door A's direction */
   50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(38deg); }    /* swung to door D's direction */
+  75%  { transform: rotate(24deg); }    /* swung to door D's direction */
   100% { transform: rotate(0deg); }
 }
 
@@ -338,25 +322,27 @@
   transition: transform 0.5s cubic-bezier(0.5, 0, 0.3, 1);
   animation: searchlightLockPulse 0.55s ease-in-out infinite;
 }
-/* Angle = atan((doorX - 50) / beamHeight) where beamHeight ≈ 56% of yard.
-   For doors at 22 / 42 / 58 / 78, offsets are -28 / -8 / +8 / +28 percent. */
-.searchlight-at-A { transform: rotate(-38deg); }
-.searchlight-at-B { transform: rotate(-13deg); }
-.searchlight-at-C { transform: rotate(13deg); }
-.searchlight-at-D { transform: rotate(38deg); }
+/* Angle = atan((doorX - 50) / beamHeight) where beamHeight ≈ 86% of yard.
+   For doors at 14 / 38 / 62 / 86, offsets are -36 / -12 / +12 / +36 percent.
+   atan(36/86) ≈ 23°, atan(12/86) ≈ 8°. */
+.searchlight-at-A { transform: rotate(-23deg); }
+.searchlight-at-B { transform: rotate(-8deg); }
+.searchlight-at-C { transform: rotate(8deg); }
+.searchlight-at-D { transform: rotate(23deg); }
 @keyframes searchlightLockPulse {
   0%, 100% { filter: brightness(1); }
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. Absolutely positioned to align with the painted paths.
-   Sit just above where the painted paths meet the wall. */
+/* Doors — painted PNG sprites. Sit at the NEAR end of each path (closest to
+   the camera), where the painted dirt lanes fan out at the bottom of the yard.
+   Because they're closer to the camera they're larger than the back-wall version. */
 .door {
   position: absolute;
-  top: 4%;
-  width: 13%;
-  max-width: 140px;
-  min-width: 64px;
+  bottom: 18%;
+  width: 17%;
+  max-width: 200px;
+  min-width: 80px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -367,11 +353,11 @@
   z-index: 2;
   display: block;
 }
-/* Four doors evenly spaced along the back wall to align with the painted paths. */
-.door-A { left: 22%; }
-.door-B { left: 42%; }
-.door-C { left: 58%; }
-.door-D { left: 78%; }
+/* Four doors spaced along the near end of the paths. */
+.door-A { left: 14%; }
+.door-B { left: 38%; }
+.door-C { left: 62%; }
+.door-D { left: 86%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -485,20 +471,23 @@
   position: absolute;
   top: -14px;
 }
-/* Walk to chosen door: snap to the door's x-position, move up + shrink for perspective. */
+/* Walk to chosen door: stop just in front of the gate at its x-position.
+   Doors sit at bottom: 18% so the gate floor is around bottom: 17–18% —
+   we plant the thug right at that footing so it looks like they're standing
+   at the entrance. */
 .thug-on-A,
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  bottom: 38%;
-  width: 5%;
-  min-width: 22px;
-  filter: brightness(0.85);
+  bottom: 14%;
+  width: 7%;
+  min-width: 32px;
+  filter: brightness(0.95);
 }
-.thug-on-A { left: 22%; }
-.thug-on-B { left: 42%; }
-.thug-on-C { left: 58%; }
-.thug-on-D { left: 78%; }
+.thug-on-A { left: 14%; }
+.thug-on-B { left: 38%; }
+.thug-on-C { left: 62%; }
+.thug-on-D { left: 86%; }
 /* Caught — slumped over, faded out. */
 .thug-caught {
   filter: grayscale(1) brightness(0.35);
@@ -715,7 +704,7 @@
 /* Bottom control bar */
 .control-bar {
   display: grid;
-  grid-template-columns: 1.2fr 1.4fr 1fr auto;
+  grid-template-columns: 1.4fr 1fr auto;
   gap: 16px;
   align-items: center;
   padding: 14px 20px;
@@ -749,7 +738,6 @@
     margin: 6px;
     padding: 8px;
   }
-  .cop-block { display: none; } /* indicator dots redundant — searchlight does the job */
   .control-bar { grid-template-columns: 1fr auto; }
   .btn-play-main { grid-column: span 2; }
 }
@@ -791,40 +779,6 @@
   letter-spacing: 1px;
   min-width: 90px;
   text-align: center;
-}
-
-/* Spotlight indicator (3 dots — A B C). Off when sweeping, lit when locked. */
-.spot-indicator {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-.spot-dot {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.04);
-  border: 1.5px solid rgba(255,255,255,0.15);
-  color: #888;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0;
-  transition: all 0.25s ease;
-}
-.spot-dot-on {
-  background: radial-gradient(circle, #fff 0%, #fca5a5 50%, #ef4444 100%);
-  border-color: #fff;
-  color: #fff;
-  box-shadow:
-    0 0 18px rgba(239, 68, 68, 0.9),
-    0 0 36px rgba(239, 68, 68, 0.6);
-  animation: dotPulse 0.6s ease-in-out infinite;
-}
-@keyframes dotPulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.12); }
 }
 
 .win-value {
@@ -886,3 +840,135 @@
 .players-list::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 2px; }
 .modal-body::-webkit-scrollbar { width: 6px; }
 .modal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+/* ===== CHARACTER PICKER ===== */
+.char-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(10, 8, 4, 0.95), rgba(0, 0, 0, 0.98));
+  backdrop-filter: blur(20px) saturate(140%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 24px 24px;
+  overflow-y: auto;
+  animation: pickerFadeIn 0.25s ease-out;
+}
+@keyframes pickerFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.char-picker-head {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.char-picker-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: #f4d04a;
+  text-shadow: 0 2px 12px rgba(212, 175, 55, 0.3);
+}
+.char-picker-sub {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+}
+.char-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 1100px;
+}
+@media (max-width: 900px) {
+  .char-picker-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 520px) {
+  .char-picker-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+.char-card {
+  background: linear-gradient(180deg, rgba(20, 18, 12, 0.7), rgba(8, 6, 4, 0.9));
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 12px;
+  padding: 10px 8px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.char-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(212, 175, 55, 0.15), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+.char-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212, 175, 55, 0.7);
+  box-shadow:
+    0 12px 30px -10px rgba(0,0,0,0.7),
+    0 0 30px -8px rgba(212, 175, 55, 0.45);
+  background: linear-gradient(180deg, rgba(30, 26, 16, 0.85), rgba(12, 8, 4, 0.95));
+}
+.char-card:hover::before { opacity: 1; }
+.char-card-img {
+  width: 100%;
+  max-width: 110px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+.char-card-meta {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.char-card-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 1.5px;
+}
+.char-card-personality {
+  margin-top: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+}
+.char-picker-cancel {
+  margin-top: 24px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  transition: all 0.15s ease;
+}
+.char-picker-cancel:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}

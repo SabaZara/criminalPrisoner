@@ -43,6 +43,7 @@ export type GameRound = {
 
 export type GamePhase =
   | 'idle'
+  | 'character-pick'
   | 'choosing'
   | 'revealing-bots'
   | 'cop-checking'

@@ -10,6 +10,7 @@ import {
   decideBotPick,
   decideBotSwitch,
   determineWinners,
+  getRoster,
   pickBotPaths,
   pickRandomPath,
   switchProbability,
@@ -61,7 +62,7 @@ export function Game() {
     };
   }, []);
 
-  const playerThug = thugs[0];
+  const playerThug = thugs.find((t) => t.isPlayer) ?? thugs[0];
   const aliveCount = thugs.filter((t) => t.alive).length;
   const pool = useMemo(() => calculatePool(bet), [bet]);
 
@@ -77,13 +78,20 @@ export function Game() {
       window.setTimeout(() => setErrorMsg(''), 2000);
       return;
     }
+    setErrorMsg('');
+    setPhase('character-pick');
+  };
+
+  /** Called from the character-picker. Charges the bet, builds the roster with
+   *  the chosen slot as the player, then transitions to the regular round flow. */
+  const confirmCharacter = (slot: number) => {
+    if (!user) return;
     updateBalance(-bet);
-    setThugs(buildInitialThugs(user.name));
+    setThugs(buildInitialThugs(user.name, slot));
     setCopPath(undefined);
     setRound(1);
     setWinners([]);
     setPayoutToPlayer(0);
-    setErrorMsg('');
     setPhase('choosing');
   };
 
@@ -378,8 +386,6 @@ export function Game() {
             style={{ backgroundImage: `url(${SPRITES.bgYard})` }}
           >
             <div className="yard-vignette" />
-            <img className="watchtower-img watchtower-left" src={SPRITES.tower} alt="" />
-            <img className="watchtower-img watchtower-right" src={SPRITES.tower} alt="" />
 
             {/* Single searchlight cone that physically slides A → B → C → B → A across
                 the back wall. When the round locks, the cone snaps to the chosen door
@@ -492,22 +498,6 @@ export function Game() {
             </div>
           </div>
 
-          <div className="cop-block">
-            <div className="bar-label">
-              ROUND {phase === 'idle' ? '–' : round} · SPOTLIGHT {copPath ? `LOCKED ON ${copPath}` : 'SWEEPING'}
-            </div>
-            <div className="spot-indicator">
-              {PATHS.map((p) => (
-                <div
-                  key={p}
-                  className={`spot-dot ${copPath === p ? 'spot-dot-on' : ''}`}
-                >
-                  {p}
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="win-block">
             <div className="bar-label">PRIZE POOL</div>
             <div className="win-value">{pool.toLocaleString()}</div>
@@ -530,6 +520,82 @@ export function Game() {
       </div>
 
       {showHistory && <HistoryModal onClose={() => setShowHistory(false)} />}
+      {phase === 'character-pick' && (
+        <CharacterPicker
+          onConfirm={(slot) => confirmCharacter(slot)}
+          onCancel={() => setPhase('idle')}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Full-screen overlay shown right after PLAY. 10s countdown; click any thug to
+ *  play as them, or wait it out for a random pick. */
+function CharacterPicker({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: (slot: number) => void;
+  onCancel: () => void;
+}) {
+  const roster = getRoster();
+  const [msLeft, setMsLeft] = useState(10000);
+  const deadlineRef = useRef(Date.now() + 10000);
+  const confirmedRef = useRef(false);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      const remaining = Math.max(0, deadlineRef.current - Date.now());
+      setMsLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(interval);
+        if (!confirmedRef.current) {
+          confirmedRef.current = true;
+          const slot = Math.floor(Math.random() * roster.length);
+          onConfirm(slot);
+        }
+      }
+    }, 80);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const pick = (slot: number) => {
+    if (confirmedRef.current) return;
+    confirmedRef.current = true;
+    onConfirm(slot);
+  };
+
+  const seconds = (msLeft / 1000).toFixed(1);
+  return (
+    <div className="char-picker">
+      <div className="char-picker-head">
+        <div className="char-picker-title">CHOOSE YOUR CHARACTER</div>
+        <div className="char-picker-sub">
+          Tap a thug to play as them — {seconds}s before a random pick
+        </div>
+      </div>
+      <div className="char-picker-grid">
+        {roster.map((slot, i) => (
+          <button
+            key={i}
+            className="char-card"
+            onClick={() => pick(i)}
+          >
+            <img className="char-card-img" src={SPRITES.thugs[i]} alt={slot.name} />
+            <div className="char-card-meta">
+              <div className="char-card-name">{slot.name}</div>
+              <div className={`char-card-personality personality-${slot.personality}`}>
+                {slot.personality.toUpperCase()}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+      <button className="char-picker-cancel" onClick={onCancel}>
+        ← Back
+      </button>
     </div>
   );
 }

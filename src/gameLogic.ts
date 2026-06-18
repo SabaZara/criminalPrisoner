@@ -1,35 +1,43 @@
 import { SPRITES } from './assets/sprites';
 import type { Path, Personality, Thug } from './types';
 
-const BOT_NAMES = ['Viper', 'Shadow', 'Lucky', 'Blaze', 'Rocco', 'Ghost', 'Tank', 'Joker', 'Bandit', 'Ace'];
-
-/** Personality assigned to each bot (by index 1-9). Tuned to feel like a varied roster. */
-const BOT_PERSONALITIES: Personality[] = [
-  'random',  // index 0 = player, never used
-  'risky',   // Viper — bets against the crowd
-  'safe',    // Shadow — hides in numbers
-  'random',  // Lucky — pure RNG (his name says it all)
-  'risky',   // Blaze — bold, takes chances
-  'sticky',  // Rocco — commits once and stays
-  'safe',    // Ghost — herd-follower, low profile
-  'sticky',  // Tank — stubborn, doesn't change his mind
-  'flighty', // Joker — chaotic, second-guesses
-  'safe',    // Bandit — calculating, sticks with crowd
-  'flighty', // Ace — gambler, indecisive
+/** Roster slot → (name, personality). The player picks one slot to play AS; the rest are bots. */
+type Slot = { name: string; personality: Personality };
+const ROSTER: Slot[] = [
+  { name: 'Viper',  personality: 'risky' },
+  { name: 'Shadow', personality: 'safe' },
+  { name: 'Lucky',  personality: 'random' },
+  { name: 'Blaze',  personality: 'risky' },
+  { name: 'Rocco',  personality: 'sticky' },
+  { name: 'Ghost',  personality: 'safe' },
+  { name: 'Tank',   personality: 'sticky' },
+  { name: 'Joker',  personality: 'flighty' },
+  { name: 'Bandit', personality: 'safe' },
+  { name: 'Ace',    personality: 'flighty' },
 ];
 
 export const PATHS: Path[] = ['A', 'B', 'C', 'D'];
 export const TOTAL_THUGS = 10;
 
-export function buildInitialThugs(playerName: string): Thug[] {
-  return Array.from({ length: TOTAL_THUGS }, (_, i) => ({
-    id: i + 1,
-    name: i === 0 ? playerName : BOT_NAMES[i],
-    avatar: SPRITES.thugs[i],
-    alive: true,
-    isPlayer: i === 0,
-    personality: i === 0 ? undefined : BOT_PERSONALITIES[i],
-  }));
+/** The slot at `playerSlot` becomes the player (uses playerName, no personality);
+ *  the other 9 slots keep their roster name + personality and act as bots. */
+export function buildInitialThugs(playerName: string, playerSlot: number = 0): Thug[] {
+  return ROSTER.map((slot, i) => {
+    const isPlayer = i === playerSlot;
+    return {
+      id: i + 1,
+      name: isPlayer ? playerName : slot.name,
+      avatar: SPRITES.thugs[i],
+      alive: true,
+      isPlayer,
+      personality: isPlayer ? undefined : slot.personality,
+    };
+  });
+}
+
+/** Names/personalities available for the character-pick screen (no player name needed yet). */
+export function getRoster(): readonly Slot[] {
+  return ROSTER;
 }
 
 export function pickRandomPath(): Path {
