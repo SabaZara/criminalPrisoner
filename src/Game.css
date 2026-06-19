@@ -15,55 +15,25 @@
   overflow: hidden;
 }
 
-/* Header: timer on the left, title centered. We keep the title visually centered on
-   the page by absolutely positioning it across the row; the timer just floats on the
-   left of the same strip. */
+/* Header: just hosts the pick timer, centered horizontally. */
 .stage-header {
   position: relative;
-  padding: 14px 24px 12px;
+  padding: 10px 16px 8px;
   background: linear-gradient(180deg, rgba(0,0,0,0.6), transparent);
   z-index: 5;
-  min-height: 78px;
+  min-height: 56px;
   display: flex;
   align-items: center;
-}
-.stage-header-title {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  width: max-content;
-  pointer-events: none;
+  justify-content: center;
 }
 .stage-header .pick-timer {
-  /* override the old absolute positioning so it sits in flow */
   position: relative;
   top: auto;
   left: auto;
   transform: none;
 }
-@media (max-width: 900px) {
-  .stage-header { flex-direction: column; gap: 10px; min-height: 0; }
-  .stage-header-title { position: static; transform: none; }
-}
-.stage-title {
-  margin: 0;
-  font-size: clamp(18px, 2.4vw, 28px);
-  font-weight: 900;
-  letter-spacing: 2px;
-  color: #fff;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.8);
-}
 .accent-gold { color: #d4af37; }
 .accent-red { color: #ef4444; }
-.stage-sub {
-  margin: 4px 0 0;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 3px;
-  color: #888;
-}
 
 /* Three-column grid: players | yard | how-it-works */
 .stage-grid {
@@ -308,9 +278,9 @@
 }
 @keyframes searchlightSwing {
   0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-35deg); }   /* swung to door A's direction */
+  25%  { transform: rotate(-36deg); }   /* swung to door A's direction */
   50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(35deg); }    /* swung to door D's direction */
+  75%  { transform: rotate(36deg); }    /* swung to door D's direction */
   100% { transform: rotate(0deg); }
 }
 
@@ -328,17 +298,15 @@
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. EMBEDDED in the back wall at the end of each
-   painted path, with their base flush with where the dirt meets the wall.
-   The wall surface in bg-yard.png ends around y: 30%, so the gate's bottom
-   sits at top: ~30% (i.e. bottom: ~64%). Sized large enough to read as real
-   prison gates, with usable tap targets. */
+/* Doors — painted PNG sprites. EMBEDDED in the back wall, pushed further
+   into the perspective so they read as distant. Smaller and higher up the
+   wall than before. */
 .door {
   position: absolute;
-  bottom: 64%;       /* base flush with wall-dirt boundary */
-  width: 14%;
-  max-width: 160px;
-  min-width: 72px;
+  bottom: 72%;       /* further up the wall — feels deeper */
+  width: 9%;
+  max-width: 110px;
+  min-width: 56px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -468,18 +436,17 @@
   position: absolute;
   top: -14px;
 }
-/* Walk to chosen door: thugs walk UP the path toward the gate but stop
-   partway, leaving breathing room between them and the gate at the wall.
-   Gates sit at bottom: 64% — thugs stop around bottom: 42% so there's a
-   clear gap. Perspective-shrunk because they're further away. */
+/* Walk to chosen door: thugs walk UP the path toward the now-distant gate,
+   stopping with clear breathing room between them and the wall. Gates sit
+   at bottom: 72% — thugs stop around bottom: 52% for visible separation. */
 .thug-on-A,
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  bottom: 42%;
-  width: 5%;
-  min-width: 26px;
-  filter: brightness(0.88);
+  bottom: 52%;
+  width: 4.5%;
+  min-width: 22px;
+  filter: brightness(0.85);
 }
 .thug-on-A { left: 28%; }
 .thug-on-B { left: 43%; }
@@ -771,12 +738,10 @@
   .bet-btn { width: 36px; height: 36px; }
 }
 @media (max-width: 480px) {
-  .stage-title { font-size: 16px; letter-spacing: 1px; }
-  .stage-sub { font-size: 10px; letter-spacing: 1.5px; }
   .pick-timer { width: auto; max-width: 100%; }
   .pick-timer-clock-sec { font-size: 22px; }
   .pick-timer-clock-cs { font-size: 14px; }
-  .door { width: 16%; }
+  .door { width: 12%; min-width: 50px; }
 }
 
 

@@ -89,9 +89,9 @@ export function Game() {
    *  Doors at offsets -22/-7/+7/+22 from center → approx angles ±35° / ±12°.
    *  Boundaries split halfway between adjacent door angles. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -23) return 'A';
+    if (angle < -24) return 'A';
     if (angle < 0) return 'B';
-    if (angle < 23) return 'C';
+    if (angle < 24) return 'C';
     return 'D';
   };
 
@@ -370,12 +370,6 @@ export function Game() {
               </div>
             );
           })()}
-          <div className="stage-header-title">
-            <h1 className="stage-title">
-              10 THUGS. <span className="accent-gold">4 PATHS.</span> <span className="accent-red">1 COP.</span>
-            </h1>
-            <p className="stage-sub">LAST THUG STANDING TAKES THE POOL</p>
-          </div>
         </div>
 
         <div className="stage-grid">
