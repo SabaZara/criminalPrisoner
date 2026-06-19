@@ -89,9 +89,9 @@ export function Game() {
    *  Doors at offsets -22/-7/+7/+22 from center → approx angles ±35° / ±12°.
    *  Boundaries split halfway between adjacent door angles. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -24) return 'A';
+    if (angle < -23) return 'A';
     if (angle < 0) return 'B';
-    if (angle < 24) return 'C';
+    if (angle < 23) return 'C';
     return 'D';
   };
 

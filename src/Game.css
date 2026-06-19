@@ -229,9 +229,9 @@
   position: absolute;
   top: -2%;
   left: 50%;
-  width: 7%;            /* narrower container so the cone tip lands on one door */
+  width: 10%;
   height: 32%;
-  margin-left: -3.5%;
+  margin-left: -5%;
   transform-origin: 50% 0%;
   pointer-events: none;
   z-index: 3;
@@ -245,44 +245,50 @@
   background: linear-gradient(
     to bottom,
     rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.7) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4) 50%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 85%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.45) 45%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.18) 80%,
     transparent 100%
   );
-  /* Tight cone: narrow at top, only modestly wider at the tip — pinpoints one gate. */
-  clip-path: polygon(42% 0%, 58% 0%, 78% 100%, 22% 100%);
-  filter: blur(3px);
+  /* Soft cone with a natural fan — narrow at the lamp, gracefully wider at
+     the tip. Not too pencil-thin, not too washed-out. */
+  clip-path: polygon(38% 0%, 62% 0%, 92% 100%, 8% 100%);
+  filter: blur(5px);
   mix-blend-mode: screen;
 }
 .searchlight-pool {
   position: absolute;
-  bottom: -3%;
+  bottom: -4%;
   left: 50%;
   transform: translateX(-50%);
-  width: 95%;          /* small bright pool, narrower than one gate-spacing gap */
-  height: 22%;
+  width: 120%;
+  height: 26%;
   background: radial-gradient(
     ellipse at center,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.95) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5) 35%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.1) 70%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.92) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5)  35%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 70%,
     transparent 100%
   );
-  filter: blur(4px);
+  filter: blur(6px);
   mix-blend-mode: screen;
 }
 
-/* Pendulum sweep: pivot fixed at center top. Pure rotation around the lamp —
-   no translation. ease-in-out gives the natural pendulum slow-at-extremes feel. */
+/* Spotlight scan: beam glides between gate angles and DWELLS briefly on each.
+   Cycles A → B → C → D → C → B → A (loop). Never sweeps through empty space
+   between gates. Door angles A:-36, B:-12, C:+12, D:+36 (atan(offset/depth)).
+   Each gate gets a short dwell (~10% of cycle) with a quick travel between
+   (~6% of cycle). Cycle = 6 dwells × (dwell + travel) ≈ 6s. */
 .searchlight-sweep {
-  animation: searchlightSwing 5s ease-in-out infinite;
+  animation: searchlightScan 6s linear infinite;
 }
-@keyframes searchlightSwing {
-  0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-36deg); }   /* swung to door A's direction */
-  50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(36deg); }    /* swung to door D's direction */
-  100% { transform: rotate(0deg); }
+@keyframes searchlightScan {
+  0%, 10%   { transform: rotate(-35deg); }   /* dwell on A */
+  16%, 27%  { transform: rotate(-12deg); }   /* dwell on B */
+  33%, 44%  { transform: rotate(12deg); }    /* dwell on C */
+  50%, 60%  { transform: rotate(35deg); }    /* dwell on D */
+  66%, 77%  { transform: rotate(12deg); }    /* dwell on C */
+  83%, 94%  { transform: rotate(-12deg); }   /* dwell on B */
+  100%      { transform: rotate(-35deg); }
 }
 
 /* Locked: turn red and pulse brightness. The transform is FROZEN at whatever
