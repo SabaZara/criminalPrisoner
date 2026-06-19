@@ -222,78 +222,66 @@
 /* Doors are absolutely positioned to sit on top of each painted path's vanishing point at the wall. */
 
 /* ===== SEARCHLIGHT =====
-   Light source fixed at the top-center of the yard. Pure rotation around the
-   lamp pivot. Smooth pendulum sweep tightened to the gate-angle range so it
-   doesn't waste time pointing at empty wall. */
+   The light source is FIXED at the top center of the yard. Only the angle
+   changes — the beam rotates around its lamp pivot like a real spotlight on
+   a hinge. Position never changes. */
 .searchlight {
   position: absolute;
   top: -2%;
   left: 50%;
   width: 14%;
-  height: 36%;
-  margin-left: -7%;
-  transform-origin: 50% 0%;
+  height: 32%;          /* short — beam reaches just down to the doors at the wall */
+  margin-left: -7%;     /* half of width — centers without using transform */
+  transform-origin: 50% 0%; /* rotate around the lamp at the top */
   pointer-events: none;
   z-index: 3;
   --beam-r: 255;
-  --beam-g: 245;
-  --beam-b: 200;
+  --beam-g: 255;
+  --beam-b: 220;
 }
-
-/* The beam itself: two layered radial gradients sitting in a container.
-   The outer gradient is the soft halo, the inner one is the hot core.
-   Both fade naturally with no clip-path edges. */
 .searchlight-beam {
   position: absolute;
   inset: 0;
-  background:
-    /* hot inner core */
-    radial-gradient(
-      ellipse 35% 100% at 50% 0%,
-      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.85) 0%,
-      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  40%,
-      transparent 100%
-    ),
-    /* wider soft halo */
-    radial-gradient(
-      ellipse 90% 110% at 50% 0%,
-      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.35) 0%,
-      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.12) 50%,
-      transparent 100%
-    );
-  filter: blur(3px);
+  background: linear-gradient(
+    to bottom,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.65) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  35%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.2)  70%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.05) 100%
+  );
+  clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
+  filter: blur(4px);
   mix-blend-mode: screen;
 }
-
-/* The pool of light on the wall where the beam lands. Brighter, smaller
-   than the beam halo so the lit gate clearly stands out. */
 .searchlight-pool {
   position: absolute;
-  bottom: -2%;
+  bottom: -6%;
   left: 50%;
   transform: translateX(-50%);
-  width: 110%;
+  width: 130%;
   height: 30%;
   background: radial-gradient(
-    ellipse at center 40%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.95) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 25%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.18) 55%,
+    ellipse at center,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.85) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  40%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.12) 70%,
     transparent 100%
   );
-  filter: blur(5px);
+  filter: blur(7px);
   mix-blend-mode: screen;
 }
 
-/* Smooth pendulum sweep: anchored at center, ease-in-out across the
-   gate-angle range only (±35°). Never points past the outer gates. */
+/* Pendulum sweep: pivot fixed at center top. Pure rotation around the lamp —
+   no translation. ease-in-out gives the natural pendulum slow-at-extremes feel. */
 .searchlight-sweep {
-  animation: searchlightSwing 4.5s ease-in-out infinite;
+  animation: searchlightSwing 5s ease-in-out infinite;
 }
 @keyframes searchlightSwing {
-  0%   { transform: rotate(-35deg); }
-  50%  { transform: rotate(35deg); }
-  100% { transform: rotate(-35deg); }
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(-36deg); }   /* swung to door A's direction */
+  50%  { transform: rotate(0deg); }
+  75%  { transform: rotate(36deg); }    /* swung to door D's direction */
+  100% { transform: rotate(0deg); }
 }
 
 /* Locked: turn red and pulse brightness. The transform is FROZEN at whatever
