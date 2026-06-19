@@ -298,15 +298,15 @@
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. EMBEDDED in the back wall, pushed further
-   into the perspective so they read as distant. Smaller and higher up the
-   wall than before. */
+/* Doors — painted PNG sprites. EMBEDDED in the back wall at the end of the
+   painted paths. Sized to read as imposing prison gates while still feeling
+   set in the wall. */
 .door {
   position: absolute;
-  bottom: 72%;       /* further up the wall — feels deeper */
-  width: 9%;
-  max-width: 110px;
-  min-width: 56px;
+  bottom: 68%;
+  width: 13%;
+  max-width: 150px;
+  min-width: 70px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -436,16 +436,15 @@
   position: absolute;
   top: -14px;
 }
-/* Walk to chosen door: thugs walk UP the path toward the now-distant gate,
-   stopping with clear breathing room between them and the wall. Gates sit
-   at bottom: 72% — thugs stop around bottom: 52% for visible separation. */
+/* Walk to chosen door: thugs walk UP the path toward the gate, stopping
+   with clear breathing room between them and the wall. */
 .thug-on-A,
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  bottom: 52%;
-  width: 4.5%;
-  min-width: 22px;
+  bottom: 48%;
+  width: 4.8%;
+  min-width: 24px;
   filter: brightness(0.85);
 }
 .thug-on-A { left: 28%; }

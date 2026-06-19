@@ -125,10 +125,22 @@ export function Game() {
     setPhase('choosing');
   };
 
-  /** Run the bot-reveal → walk → cop-check sequence for the current round.
-   *  Bots already have picks from the indecision effect, but we ensure no alive
-   *  thug is missing a chosenPath (safety net) before the cop strikes. */
-  const runRound = () => {
+  /** Freeze the spotlight at its live angle RIGHT NOW and lock in the cop's
+   *  target door based on where the beam is pointing. Visually the beam stops
+   *  instantly — no jump. Then run the rest of the round flow with the cop's
+   *  choice already decided. Called at pick-timer end (and spectate timeout). */
+  const lockSpotlightAndRunRound = () => {
+    const angle = readSearchlightAngle();
+    const cp = angleToDoor(angle);
+    setFrozenAngle(angle);
+    setCopPath(cp);
+    runRound(cp);
+  };
+
+  /** Run the bot-reveal → walk → strike sequence. `cp` is the cop's already-
+   *  decided target door (locked in at pick-timer end so the beam doesn't
+   *  drift after). */
+  const runRound = (cp: Path) => {
     setPhase('revealing-bots');
 
     const t1 = window.setTimeout(() => {
@@ -138,12 +150,6 @@ export function Game() {
     timeouts.current.push(t1);
 
     const t2 = window.setTimeout(() => {
-      // Cop targets whichever door the spotlight is naturally pointing at right
-      // now — the beam doesn't snap, it just freezes. Read live angle, map to door.
-      const angle = readSearchlightAngle();
-      const cp = angleToDoor(angle);
-      setFrozenAngle(angle);
-      setCopPath(cp);
       setThugs((cur) => {
         const after = applyCopCheck(cur, cp, round);
         const winnersOrNull = determineWinners(after, round);
@@ -205,7 +211,7 @@ export function Game() {
           }
           return cur;
         });
-        runRound();
+        lockSpotlightAndRunRound();
       }
     };
     tickInterval.current = window.setInterval(tick, 100);
@@ -222,7 +228,7 @@ export function Game() {
   useEffect(() => {
     if (phase !== 'choosing') return;
     if (playerThug.alive) return;
-    const t = window.setTimeout(runRound, 1500);
+    const t = window.setTimeout(lockSpotlightAndRunRound, 1500);
     timeouts.current.push(t);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
