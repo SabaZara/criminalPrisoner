@@ -222,73 +222,78 @@
 /* Doors are absolutely positioned to sit on top of each painted path's vanishing point at the wall. */
 
 /* ===== SEARCHLIGHT =====
-   The light source is FIXED at the top center of the yard. Only the angle
-   changes — the beam rotates around its lamp pivot like a real spotlight on
-   a hinge. Position never changes. */
+   Light source fixed at the top-center of the yard. Pure rotation around the
+   lamp pivot. Smooth pendulum sweep tightened to the gate-angle range so it
+   doesn't waste time pointing at empty wall. */
 .searchlight {
   position: absolute;
   top: -2%;
   left: 50%;
-  width: 10%;
-  height: 32%;
-  margin-left: -5%;
+  width: 14%;
+  height: 36%;
+  margin-left: -7%;
   transform-origin: 50% 0%;
   pointer-events: none;
   z-index: 3;
   --beam-r: 255;
-  --beam-g: 255;
-  --beam-b: 220;
+  --beam-g: 245;
+  --beam-b: 200;
 }
+
+/* The beam itself: two layered radial gradients sitting in a container.
+   The outer gradient is the soft halo, the inner one is the hot core.
+   Both fade naturally with no clip-path edges. */
 .searchlight-beam {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.7) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.45) 45%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.18) 80%,
-    transparent 100%
-  );
-  /* Soft cone with a natural fan — narrow at the lamp, gracefully wider at
-     the tip. Not too pencil-thin, not too washed-out. */
-  clip-path: polygon(38% 0%, 62% 0%, 92% 100%, 8% 100%);
-  filter: blur(5px);
-  mix-blend-mode: screen;
-}
-.searchlight-pool {
-  position: absolute;
-  bottom: -4%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120%;
-  height: 26%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.92) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5)  35%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 70%,
-    transparent 100%
-  );
-  filter: blur(6px);
+  background:
+    /* hot inner core */
+    radial-gradient(
+      ellipse 35% 100% at 50% 0%,
+      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.85) 0%,
+      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  40%,
+      transparent 100%
+    ),
+    /* wider soft halo */
+    radial-gradient(
+      ellipse 90% 110% at 50% 0%,
+      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.35) 0%,
+      rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.12) 50%,
+      transparent 100%
+    );
+  filter: blur(3px);
   mix-blend-mode: screen;
 }
 
-/* Spotlight scan: beam glides between gate angles and DWELLS briefly on each.
-   Cycles A → B → C → D → C → B → A (loop). Never sweeps through empty space
-   between gates. Door angles A:-36, B:-12, C:+12, D:+36 (atan(offset/depth)).
-   Each gate gets a short dwell (~10% of cycle) with a quick travel between
-   (~6% of cycle). Cycle = 6 dwells × (dwell + travel) ≈ 6s. */
-.searchlight-sweep {
-  animation: searchlightScan 6s linear infinite;
+/* The pool of light on the wall where the beam lands. Brighter, smaller
+   than the beam halo so the lit gate clearly stands out. */
+.searchlight-pool {
+  position: absolute;
+  bottom: -2%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110%;
+  height: 30%;
+  background: radial-gradient(
+    ellipse at center 40%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.95) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 25%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.18) 55%,
+    transparent 100%
+  );
+  filter: blur(5px);
+  mix-blend-mode: screen;
 }
-@keyframes searchlightScan {
-  0%, 10%   { transform: rotate(-35deg); }   /* dwell on A */
-  16%, 27%  { transform: rotate(-12deg); }   /* dwell on B */
-  33%, 44%  { transform: rotate(12deg); }    /* dwell on C */
-  50%, 60%  { transform: rotate(35deg); }    /* dwell on D */
-  66%, 77%  { transform: rotate(12deg); }    /* dwell on C */
-  83%, 94%  { transform: rotate(-12deg); }   /* dwell on B */
-  100%      { transform: rotate(-35deg); }
+
+/* Smooth pendulum sweep: anchored at center, ease-in-out across the
+   gate-angle range only (±35°). Never points past the outer gates. */
+.searchlight-sweep {
+  animation: searchlightSwing 4.5s ease-in-out infinite;
+}
+@keyframes searchlightSwing {
+  0%   { transform: rotate(-35deg); }
+  50%  { transform: rotate(35deg); }
+  100% { transform: rotate(-35deg); }
 }
 
 /* Locked: turn red and pulse brightness. The transform is FROZEN at whatever
