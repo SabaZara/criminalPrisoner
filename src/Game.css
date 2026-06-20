@@ -280,9 +280,9 @@
 }
 @keyframes searchlightSwing {
   0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-28deg); }
+  25%  { transform: rotate(-35deg); }   /* reaches door A */
   50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(28deg); }
+  75%  { transform: rotate(35deg); }    /* reaches door D */
   100% { transform: rotate(0deg); }
 }
 
