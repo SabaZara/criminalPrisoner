@@ -3,17 +3,19 @@ import type { Path, Personality, Thug } from './types';
 
 /** Roster slot → (name, personality). The player picks one slot to play AS; the rest are bots. */
 type Slot = { name: string; personality: Personality };
+/* Each entry maps to the matching sprite slot (thug-1.png .. thug-10.png).
+ * Names are loosely themed to fit each sprite — slot 7 is the female thug. */
 const ROSTER: Slot[] = [
-  { name: 'Viper',  personality: 'risky' },
-  { name: 'Shadow', personality: 'safe' },
-  { name: 'Lucky',  personality: 'random' },
-  { name: 'Blaze',  personality: 'risky' },
-  { name: 'Rocco',  personality: 'sticky' },
-  { name: 'Ghost',  personality: 'safe' },
-  { name: 'Tank',   personality: 'sticky' },
-  { name: 'Joker',  personality: 'flighty' },
-  { name: 'Bandit', personality: 'safe' },
-  { name: 'Ace',    personality: 'flighty' },
+  { name: 'Viper',  personality: 'risky' },   // 1: white tank, tatted, orange pants
+  { name: 'Shadow', personality: 'safe' },    // 2: orange 07 jumpsuit
+  { name: 'Drift',  personality: 'random' },  // 3: olive scrubs, blonde back
+  { name: 'Blaze',  personality: 'risky' },   // 4: white tank, dark sweats
+  { name: 'Rocco',  personality: 'sticky' },  // 5: red 22 jersey, bald
+  { name: 'Tank',   personality: 'sticky' },  // 6: muscle, camo
+  { name: 'Raven',  personality: 'safe' },    // 7: female, camo + olive tee
+  { name: 'Bandit', personality: 'flighty' }, // 8: black tank, tatted, chain
+  { name: 'Ghost',  personality: 'safe' },    // 9: gray skull hoodie
+  { name: 'Ace',    personality: 'flighty' }, // 10: green 23 jersey
 ];
 
 export const PATHS: Path[] = ['A', 'B', 'C', 'D'];
