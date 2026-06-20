@@ -229,45 +229,47 @@
   position: absolute;
   top: -2%;
   left: 50%;
-  width: 14%;
-  height: 32%;          /* short — beam reaches just down to the doors at the wall */
-  margin-left: -7%;     /* half of width — centers without using transform */
-  transform-origin: 50% 0%; /* rotate around the lamp at the top */
+  width: 16%;
+  height: 42%;          /* longer beam so the bright tip lands ON the gate face */
+  margin-left: -8%;
+  transform-origin: 50% 0%;
   pointer-events: none;
   z-index: 3;
   --beam-r: 255;
-  --beam-g: 255;
-  --beam-b: 220;
+  --beam-g: 252;
+  --beam-b: 215;
 }
 .searchlight-beam {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.65) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  35%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.2)  70%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.05) 100%
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.45) 50%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 80%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.3)  100%
   );
-  clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
-  filter: blur(4px);
+  /* Tighter tip: was 100/0 at bottom, now 78/22 — beam stays narrow enough
+     that B and C don't bleed into each other. */
+  clip-path: polygon(40% 0%, 60% 0%, 78% 100%, 22% 100%);
+  filter: blur(3.5px);
   mix-blend-mode: screen;
 }
 .searchlight-pool {
   position: absolute;
-  bottom: -6%;
+  bottom: -4%;
   left: 50%;
   transform: translateX(-50%);
-  width: 130%;
-  height: 30%;
+  width: 80%;          /* small bright pool — narrower than the gap between gates */
+  height: 24%;
   background: radial-gradient(
     ellipse at center,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.85) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.4)  40%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.12) 70%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 1) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 35%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 70%,
     transparent 100%
   );
-  filter: blur(7px);
+  filter: blur(5px);
   mix-blend-mode: screen;
 }
 
@@ -278,9 +280,9 @@
 }
 @keyframes searchlightSwing {
   0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-36deg); }   /* swung to door A's direction */
+  25%  { transform: rotate(-28deg); }
   50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(36deg); }    /* swung to door D's direction */
+  75%  { transform: rotate(28deg); }
   100% { transform: rotate(0deg); }
 }
 
