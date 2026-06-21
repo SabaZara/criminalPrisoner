@@ -1,12 +1,60 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './auth';
 import './TopBar.css';
 
-export function TopBar({ onShowHistory }: { onShowHistory: () => void }) {
+/** Tweens a number from previous → current over ~600ms whenever it changes.
+ *  Adds a CSS class while ticking to glow the balance pill. */
+function useTickingNumber(target: number): { display: number; isTicking: boolean; trend: 'up' | 'down' | null } {
+  const [display, setDisplay] = useState(target);
+  const [trend, setTrend] = useState<'up' | 'down' | null>(null);
+  const fromRef = useRef(target);
+  const startRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (target === display) return;
+    setTrend(target > fromRef.current ? 'up' : 'down');
+    fromRef.current = display;
+    startRef.current = performance.now();
+    const duration = 700;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - (startRef.current ?? now)) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const v = Math.round(fromRef.current + (target - fromRef.current) * eased);
+      setDisplay(v);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(step);
+      } else {
+        rafRef.current = null;
+        // clear trend after a short hold so the glow fades
+        window.setTimeout(() => setTrend(null), 400);
+      }
+    };
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(step);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target]);
+
+  return { display, isTicking: trend !== null, trend };
+}
+
+export function TopBar({
+  onShowHistory,
+  onShowRules,
+}: {
+  onShowHistory: () => void;
+  onShowRules: () => void;
+}) {
   const { user, logout, updateBalance, setBalance } = useAuth();
   const [open, setOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState('10000');
+
+  // Hooks must run unconditionally — call before any early return.
+  const { display: tickedBalance, isTicking, trend } = useTickingNumber(user?.balance ?? 0);
 
   if (!user) return null;
 
@@ -28,9 +76,14 @@ export function TopBar({ onShowHistory }: { onShowHistory: () => void }) {
   return (
     <>
       <div className="topbar">
-        <button className="menu-btn" onClick={() => setOpen((o) => !o)} aria-label="Menu">
-          <span /><span /><span />
-        </button>
+        <div className="topbar-left">
+          <button className="menu-btn" onClick={() => setOpen((o) => !o)} aria-label="Menu">
+            <span /><span /><span />
+          </button>
+          <button className="rules-btn" onClick={onShowRules} aria-label="How to play" title="How to play">
+            ?
+          </button>
+        </div>
 
         <div className="topbar-center">
           <div className="brand">
@@ -40,9 +93,12 @@ export function TopBar({ onShowHistory }: { onShowHistory: () => void }) {
         </div>
 
         <div className="balance-block">
-          <button className="balance-btn" onClick={() => setDepositOpen(true)}>
+          <button
+            className={`balance-btn ${isTicking ? 'balance-ticking' : ''} ${trend ? `balance-${trend}` : ''}`}
+            onClick={() => setDepositOpen(true)}
+          >
             <div className="balance-coin">$</div>
-            <div className="balance-num">{user.balance.toLocaleString()}</div>
+            <div className="balance-num">{tickedBalance.toLocaleString()}</div>
             <div className="balance-plus">+</div>
           </button>
           <div className="user-avatar" title={user.name}>
@@ -69,6 +125,9 @@ export function TopBar({ onShowHistory }: { onShowHistory: () => void }) {
             </button>
             <button className="menu-item" onClick={() => { onShowHistory(); setOpen(false); }}>
               📜 Game History
+            </button>
+            <button className="menu-item" onClick={() => { onShowRules(); setOpen(false); }}>
+              ❓ How to Play
             </button>
             <button className="menu-item danger" onClick={logout}>
               ⎋ Sign Out

@@ -48,6 +48,9 @@ export function Game() {
   const [winners, setWinners] = useState<Thug[]>([]);
   const [payoutToPlayer, setPayoutToPlayer] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
+  const [showRules, setShowRules] = useState(false);
+  const [bustedFlash, setBustedFlash] = useState(false);
+  const wasAliveRef = useRef(true);
   const [errorMsg, setErrorMsg] = useState('');
   /** ms remaining in the pick phase. >0 only while phase === 'choosing'. */
   const [pickMsLeft, setPickMsLeft] = useState(0);
@@ -68,6 +71,20 @@ export function Game() {
 
   const playerThug = thugs.find((t) => t.isPlayer) ?? thugs[0];
   const aliveCount = thugs.filter((t) => t.alive).length;
+
+  /** Watch for player alive→dead transition during a round to fire the BUSTED flash. */
+  useEffect(() => {
+    if (wasAliveRef.current && !playerThug.alive && phase !== 'idle' && phase !== 'character-pick') {
+      setBustedFlash(true);
+      const t = window.setTimeout(() => setBustedFlash(false), 1500);
+      timeouts.current.push(t);
+    }
+    wasAliveRef.current = playerThug.alive;
+    // Reset the ref when starting a new game
+    if (phase === 'idle' || phase === 'character-pick') {
+      wasAliveRef.current = true;
+    }
+  }, [playerThug.alive, phase]);
   const pool = useMemo(() => calculatePool(bet), [bet]);
 
   /** Read the live rotation angle (in degrees) from the searchlight DOM element's
@@ -85,9 +102,16 @@ export function Game() {
     return rad * (180 / Math.PI);
   };
 
-  /** Map a beam angle (degrees) to the door it's currently pointing at.
-   *  Doors at offsets -22/-7/+7/+22 from center → approx angles ±35° / ±12°.
-   *  Boundaries split halfway between adjacent door angles. */
+  /** Exact angle to point the beam at each gate. Used both for boundaries
+   *  in angleToDoor and for snapping the locked beam onto a gate's center. */
+  const DOOR_ANGLES: Record<Path, number> = {
+    A: -35,
+    B: -12,
+    C: 12,
+    D: 35,
+  };
+
+  /** Map a beam angle (degrees) to the door it's currently pointing at. */
   const angleToDoor = (angle: number): Path => {
     if (angle < -23) return 'A';
     if (angle < 0) return 'B';
@@ -112,7 +136,7 @@ export function Game() {
   };
 
   /** Called from the character-picker. Charges the bet, builds the roster with
-   *  the chosen slot as the player, then transitions to the regular round flow. */
+   *  the chosen slot as the player, then runs the start-countdown intro. */
   const confirmCharacter = (slot: number) => {
     if (!user) return;
     updateBalance(-bet);
@@ -122,7 +146,10 @@ export function Game() {
     setRound(1);
     setWinners([]);
     setPayoutToPlayer(0);
-    setPhase('choosing');
+    setPhase('start-countdown');
+    // 2-second 3-2-1 countdown, then the first pick window begins.
+    const t = window.setTimeout(() => setPhase('choosing'), 2400);
+    timeouts.current.push(t);
   };
 
   /** Freeze the spotlight at its live angle RIGHT NOW and lock in the cop's
@@ -130,9 +157,14 @@ export function Game() {
    *  instantly — no jump. Then run the rest of the round flow with the cop's
    *  choice already decided. Called at pick-timer end (and spectate timeout). */
   const lockSpotlightAndRunRound = () => {
-    const angle = readSearchlightAngle();
-    const cp = angleToDoor(angle);
-    setFrozenAngle(angle);
+    // Read the live sweep angle to decide which gate the cop hits — that's
+    // the fair part: the beam was naturally on that gate at the moment.
+    const liveAngle = readSearchlightAngle();
+    const cp = angleToDoor(liveAngle);
+    // Then snap the beam to the gate's EXACT angle so it's visually
+    // unambiguous which one got hit. (Tiny snap, since the live angle was
+    // already inside that gate's range — feels natural, not jumpy.)
+    setFrozenAngle(DOOR_ANGLES[cp]);
     setCopPath(cp);
     runRound(cp);
   };
@@ -327,7 +359,28 @@ export function Game() {
     setRound(1);
     setWinners([]);
     setPayoutToPlayer(0);
+    setBustedFlash(false);
     setThugs(buildInitialThugs(user?.name ?? 'You'));
+  };
+
+  /** From the final-result screen → straight back to character pick, keeping the
+   *  same bet (and charging again). */
+  const playAgain = () => {
+    if (!user) return;
+    if (user.balance < bet) {
+      setErrorMsg('Not enough balance!');
+      window.setTimeout(() => setErrorMsg(''), 2000);
+      reset();
+      return;
+    }
+    setCopPath(undefined);
+    setFrozenAngle(null);
+    setRound(1);
+    setWinners([]);
+    setPayoutToPlayer(0);
+    setBustedFlash(false);
+    setErrorMsg('');
+    setPhase('character-pick');
   };
 
   const playerWon = winners.some((w) => w.isPlayer);
@@ -335,7 +388,10 @@ export function Game() {
 
   return (
     <div className="game-shell">
-      <TopBar onShowHistory={() => setShowHistory(true)} />
+      <TopBar
+        onShowHistory={() => setShowHistory(true)}
+        onShowRules={() => setShowRules(true)}
+      />
 
       <div className="game-stage">
         <div className="stage-header">
@@ -346,7 +402,7 @@ export function Game() {
             const ssStr = String(ss).padStart(2, '0');
             const csStr = String(cs).padStart(2, '0');
             return (
-              <div className="pick-timer">
+              <div className={`pick-timer ${pickMsLeft < 1500 ? 'pick-timer-urgent' : ''}`}>
                 <div className="pick-timer-row">
                   <div className="pick-timer-meta">
                     <span className="pick-timer-meta-key">ROUND</span>
@@ -418,7 +474,7 @@ export function Game() {
 
           {/* Center: Prison Yard */}
           <div
-            className={`yard ${copPath ? `spotlight-locked spotlight-${copPath}` : 'spotlight-sweep'}`}
+            className={`yard ${copPath ? `spotlight-locked spotlight-${copPath}` : 'spotlight-sweep'} ${phase === 'round-result' ? 'yard-transition' : ''}`}
             style={{ backgroundImage: `url(${SPRITES.bgYard})` }}
           >
             <div className="yard-vignette" />
@@ -479,32 +535,59 @@ export function Game() {
               })}
             </div>
 
+            {phase === 'start-countdown' && (
+              <StartCountdown />
+            )}
+
             {phase === 'choosing' && !playerThug.alive && (
-              <div className="prompt-banner spectate">SPECTATING · BOTS CONTINUE</div>
+              <div className="prompt-banner spectate">SPECTATING · BOTS RUN THE REMAINING ROUNDS</div>
             )}
 
             {phase === 'round-result' && (
               <div className="round-banner">
-                ROUND {round} OVER · {aliveCount} REMAIN
+                ROUND {round} CLEARED · {aliveCount} REMAIN
+              </div>
+            )}
+
+            {bustedFlash && (
+              <div className="busted-flash">
+                <div className="busted-text">BUSTED</div>
               </div>
             )}
 
             {phase === 'final-result' && (
               <div className={`result-banner ${playerWon ? 'win' : 'lose'}`}>
+                {playerWon && <div className="result-confetti" aria-hidden="true" />}
+                <div className="result-eyebrow">
+                  {playerWon
+                    ? (winners.length === 1 ? 'SURVIVOR' : `${winners.length}-WAY SPLIT`)
+                    : 'CAUGHT'}
+                </div>
                 <div className="result-msg">
                   {playerWon
                     ? winners.length === 1
-                      ? `YOU WON THE POOL`
-                      : `SPLIT WIN · ${winners.length} WAY`
-                    : 'CAUGHT BY COP'}
+                      ? 'YOU WON THE POOL'
+                      : 'SPLIT WIN'
+                    : 'BUSTED BY THE COP'}
+                </div>
+                <div className="result-payout">
+                  {playerWon ? '+' : '−'}
+                  {(playerWon ? payoutToPlayer : bet).toLocaleString()}
                 </div>
                 <div className="result-detail">
-                  Pool {pool.toLocaleString()} · Your share {payoutToPlayer.toLocaleString()}
+                  Prize Pool {pool.toLocaleString()} · Rounds played {round}
                 </div>
                 <div className="result-winners">
                   Winner{winners.length > 1 ? 's' : ''}: {winners.map((w) => w.name).join(' · ')}
                 </div>
-                <button className="btn-play" onClick={reset}>PLAY AGAIN</button>
+                <div className="result-actions">
+                  <button className="btn-play btn-play-result" onClick={playAgain}>
+                    PLAY AGAIN
+                  </button>
+                  <button className="btn-secondary" onClick={reset}>
+                    Change Character
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -513,13 +596,20 @@ export function Game() {
           <div className="panel how-panel">
             <div className="panel-header how-header">HOW IT WORKS</div>
             <ol className="how-list">
-              <li><span className="how-num">1</span><span>EVERY THUG ANTES THE BET</span></li>
-              <li><span className="how-num">2</span><span>EACH ROUND: PICK A PATH</span></li>
-              <li><span className="how-num">3</span><span>COP CHECKS 1 PATH · CAUGHT = OUT</span></li>
-              <li><span className="how-num">4</span><span>SURVIVORS GO AGAIN NEXT ROUND</span></li>
-              <li><span className="how-num">5</span><span>LAST STANDING WINS THE POOL</span></li>
+              <li><span className="how-num">1</span><span>ANTE UP — POOL = ANTE × 10</span></li>
+              <li><span className="how-num">2</span><span>PICK YOUR CHARACTER</span></li>
+              <li><span className="how-num">3</span><span>TAP A GATE (5s, CAN SWITCH)</span></li>
+              <li><span className="how-num">4</span><span>SPOTLIGHT FREEZES · CAUGHT = OUT</span></li>
+              <li><span className="how-num">5</span><span>LAST STANDING TAKES IT ALL</span></li>
               <li><span className="how-num">6</span><span>TIED LAST? SPLIT THE POOL</span></li>
             </ol>
+            <button
+              type="button"
+              className="how-cta"
+              onClick={() => setShowRules(true)}
+            >
+              FULL RULES →
+            </button>
           </div>
         </div>
 
@@ -563,6 +653,53 @@ export function Game() {
           onCancel={() => setPhase('idle')}
         />
       )}
+      {showRules && <RulesModal onClose={() => setShowRules(false)} />}
+    </div>
+  );
+}
+
+/** 3-2-1 countdown shown for ~2.4s before each game starts. */
+function StartCountdown() {
+  const [n, setN] = useState(3);
+  useEffect(() => {
+    const id1 = window.setTimeout(() => setN(2), 700);
+    const id2 = window.setTimeout(() => setN(1), 1400);
+    const id3 = window.setTimeout(() => setN(0), 2100);
+    return () => {
+      clearTimeout(id1); clearTimeout(id2); clearTimeout(id3);
+    };
+  }, []);
+  return (
+    <div className="start-countdown">
+      <div className="start-instruction">TAP A GATE TO ESCAPE</div>
+      <div key={n} className={`start-number ${n === 0 ? 'go' : ''}`}>
+        {n === 0 ? 'GO' : n}
+      </div>
+    </div>
+  );
+}
+
+/** Full rules modal triggered from the topbar "?" button. */
+function RulesModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal modal-rules" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-head">
+          <h2>HOW TO PLAY</h2>
+          <button className="modal-x" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <ol className="rules-list">
+            <li><b>Set your ante</b> — every thug pays the same. The prize pool = your ante × 10.</li>
+            <li><b>Pick a character</b> — each has a personality (risky, safe, sticky, flighty, random). It affects how the bots behave.</li>
+            <li><b>Each round, choose a gate</b> (A, B, C, or D). You have 5 seconds; tap any gate to switch.</li>
+            <li><b>The spotlight sweeps the wall.</b> Wherever the beam is pointing when your timer ends = the gate the cop checks.</li>
+            <li><b>Caught? You're out.</b> Anyone behind the busted gate gets eliminated. Everyone else survives to the next round.</li>
+            <li><b>Last thug standing wins the pool.</b> If multiple thugs are eliminated together on the final round, they split the pool.</li>
+            <li><b>Read the room.</b> Bots walk to their chosen gate during the timer — sometimes they change their mind. Use the crowd as info.</li>
+          </ol>
+        </div>
+      </div>
     </div>
   );
 }

@@ -228,3 +228,45 @@
 }
 .history-row.win { border-color: #4ade80; }
 .history-row.lose { border-color: #ef4444; }
+
+/* Wrap menu + rules button together on the left */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rules-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #f4d04a;
+  font-size: 16px;
+  font-weight: 900;
+  font-family: 'Times New Roman', Georgia, serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.rules-btn:hover {
+  background: rgba(212, 175, 55, 0.25);
+  color: #fff;
+  border-color: rgba(212, 175, 55, 0.7);
+}
+
+/* Balance ticker glow when changing */
+.balance-ticking { transition: box-shadow 0.2s ease, border-color 0.2s ease; }
+.balance-up {
+  border-color: rgba(74, 222, 128, 0.8) !important;
+  box-shadow:
+    0 0 0 1px rgba(74, 222, 128, 0.4) inset,
+    0 0 20px rgba(74, 222, 128, 0.5);
+}
+.balance-up .balance-num { color: #4ade80 !important; }
+.balance-down {
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.3) inset,
+    0 0 16px rgba(239, 68, 68, 0.35);
+}
+.balance-down .balance-num { color: #fca5a5 !important; }
