@@ -290,15 +290,14 @@
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. Sit at the END of each path, but brought
-   FORWARD a bit (lower on screen / closer to camera) so they're clearly
-   distinct from the back wall. Larger to match the nearer perspective. */
+/* Doors — embedded in the back wall, just a tiny step forward to show
+   depth from the wall surface. */
 .door {
   position: absolute;
-  bottom: 56%;       /* further down each path, closer to camera */
-  width: 16%;        /* bigger now that they're nearer */
-  max-width: 180px;
-  min-width: 86px;
+  bottom: 64%;       /* small forward nudge from the wall (was 68%) */
+  width: 13%;
+  max-width: 150px;
+  min-width: 70px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -309,12 +308,10 @@
   z-index: 2;
   display: block;
 }
-/* Paths converge at the wall in a narrower span than they fan out at the
-   bottom — door x-positions are closer together than thug start positions. */
-.door-A { left: 22%; }
-.door-B { left: 40%; }
-.door-C { left: 60%; }
-.door-D { left: 78%; }
+.door-A { left: 28%; }
+.door-B { left: 43%; }
+.door-C { left: 57%; }
+.door-D { left: 72%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -443,13 +440,11 @@
   height: 22%;       /* readable at the gate, still smaller than start position for perspective */
   filter: brightness(0.9);
 }
-/* Path centers at the stop depth (bottom: 42% — further down than the gates).
-   Paths fan wider here than at the wall, so these x-positions are spread more
-   than the door x's at the wall. */
-.thug-on-A { left: 18%; }
-.thug-on-B { left: 38%; }
-.thug-on-C { left: 62%; }
-.thug-on-D { left: 82%; }
+/* Same x as the gates above — thugs walk straight up the path to their door. */
+.thug-on-A { left: 28%; }
+.thug-on-B { left: 43%; }
+.thug-on-C { left: 57%; }
+.thug-on-D { left: 72%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {

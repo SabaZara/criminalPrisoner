@@ -59,8 +59,8 @@ export function Game() {
   const [frozenAngle, setFrozenAngle] = useState<number | null>(null);
   /** Live spotlight angle driven by JS (not CSS) so we always know the exact
    *  angle without read-timing drift. Updated 60Hz by an rAF loop while sweeping. */
-  const [liveAngle, setLiveAngle] = useState<number>(-35);
-  const liveAngleRef = useRef<number>(-35);
+  const [liveAngle, setLiveAngle] = useState<number>(-30);
+  const liveAngleRef = useRef<number>(-30);
   const sweepRafRef = useRef<number | null>(null);
   const timeouts = useRef<number[]>([]);
   const tickInterval = useRef<number | null>(null);
@@ -87,7 +87,7 @@ export function Game() {
       return;
     }
     const PERIOD = 5000;
-    const AMP = 35;
+    const AMP = 30;
     const start = performance.now();
     const tick = (now: number) => {
       const t = ((now - start) % PERIOD) / PERIOD; // 0..1
@@ -130,18 +130,21 @@ export function Game() {
 
   /** Exact angle to point the beam at each gate. Used both for boundaries
    *  in angleToDoor and for snapping the locked beam onto a gate's center. */
+  /** Gates at x = 28/43/57/72 (offsets ±22/±7 from center). Beam vertical
+   *  reach ≈ 38%. atan(22/38) ≈ 30°, atan(7/38) ≈ 10°. */
   const DOOR_ANGLES: Record<Path, number> = {
-    A: -35,
-    B: -12,
-    C: 12,
-    D: 35,
+    A: -30,
+    B: -10,
+    C: 10,
+    D: 30,
   };
 
-  /** Map a beam angle (degrees) to the door it's currently pointing at. */
+  /** Map a beam angle (degrees) to the door it's currently pointing at.
+   *  Boundaries at midpoints between adjacent gate angles: ±20° and 0°. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -23) return 'A';
+    if (angle < -20) return 'A';
     if (angle < 0) return 'B';
-    if (angle < 23) return 'C';
+    if (angle < 20) return 'C';
     return 'D';
   };
 
