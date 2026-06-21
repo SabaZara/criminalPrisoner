@@ -273,41 +273,12 @@
   mix-blend-mode: screen;
 }
 
-/* Pendulum sweep: pivot fixed at center top. LINEAR timing with many
-   evenly-spaced keyframes that trace a sine curve from -35° to +35° to -35°.
-   This produces buttery motion without the visible jumps that ease-in-out
-   on sparse keyframes was creating. */
-.searchlight-sweep {
-  animation: searchlightSwing 5s linear infinite;
-}
-@keyframes searchlightSwing {
-  /* sin curve from -35 to +35 over 0..50, then back over 50..100 */
-  0%   { transform: rotate(-35deg); }
-  5%   { transform: rotate(-34.1deg); }
-  10%  { transform: rotate(-31.5deg); }
-  15%  { transform: rotate(-27.2deg); }
-  20%  { transform: rotate(-21.3deg); }
-  25%  { transform: rotate(-14deg); }
-  30%  { transform: rotate(-5.5deg); }
-  35%  { transform: rotate(3.5deg); }
-  40%  { transform: rotate(12.3deg); }
-  45%  { transform: rotate(20.5deg); }
-  50%  { transform: rotate(27.5deg); }
-  55%  { transform: rotate(32.5deg); }
-  60%  { transform: rotate(34.7deg); }
-  65%  { transform: rotate(34deg); }
-  70%  { transform: rotate(30deg); }
-  75%  { transform: rotate(23deg); }
-  80%  { transform: rotate(13.5deg); }
-  85%  { transform: rotate(2.5deg); }
-  90%  { transform: rotate(-10deg); }
-  95%  { transform: rotate(-23deg); }
-  100% { transform: rotate(-35deg); }
-}
+/* The sweep is now driven from JS (requestAnimationFrame loop in Game.tsx
+   sets an inline transform: rotate(...) on .searchlight every frame). No
+   CSS animation needed for the sweep itself — gives us perfect read-without-
+   drift when locking in the cop's target gate. */
 
-/* Locked: turn red and pulse brightness. The transform is FROZEN at whatever
-   live sweep angle the beam was at when the cop struck — set via inline style
-   from JS — so we do not animate or override transform here. */
+/* Locked: turn red and pulse brightness. */
 .searchlight-locked {
   --beam-r: 239;
   --beam-g: 68;
@@ -319,15 +290,15 @@
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — painted PNG sprites. EMBEDDED in the back wall at the end of the
-   painted paths. Sized to read as imposing prison gates while still feeling
-   set in the wall. */
+/* Doors — painted PNG sprites. Sit at the END of each path, but brought
+   FORWARD a bit (lower on screen / closer to camera) so they're clearly
+   distinct from the back wall. Larger to match the nearer perspective. */
 .door {
   position: absolute;
-  bottom: 68%;
-  width: 13%;
-  max-width: 150px;
-  min-width: 70px;
+  bottom: 56%;       /* further down each path, closer to camera */
+  width: 16%;        /* bigger now that they're nearer */
+  max-width: 180px;
+  min-width: 86px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -340,10 +311,10 @@
 }
 /* Paths converge at the wall in a narrower span than they fan out at the
    bottom — door x-positions are closer together than thug start positions. */
-.door-A { left: 28%; }
-.door-B { left: 43%; }
-.door-C { left: 57%; }
-.door-D { left: 72%; }
+.door-A { left: 22%; }
+.door-B { left: 40%; }
+.door-C { left: 60%; }
+.door-D { left: 78%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -472,10 +443,13 @@
   height: 22%;       /* readable at the gate, still smaller than start position for perspective */
   filter: brightness(0.9);
 }
-.thug-on-A { left: 28%; }
-.thug-on-B { left: 43%; }
-.thug-on-C { left: 57%; }
-.thug-on-D { left: 72%; }
+/* Path centers at the stop depth (bottom: 42% — further down than the gates).
+   Paths fan wider here than at the wall, so these x-positions are spread more
+   than the door x's at the wall. */
+.thug-on-A { left: 18%; }
+.thug-on-B { left: 38%; }
+.thug-on-C { left: 62%; }
+.thug-on-D { left: 82%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {

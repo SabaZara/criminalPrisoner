@@ -55,20 +55,55 @@ export function Game() {
   const [errorMsg, setErrorMsg] = useState('');
   /** ms remaining in the pick phase. >0 only while phase === 'choosing'. */
   const [pickMsLeft, setPickMsLeft] = useState(0);
-  /** When the cop strikes we freeze the beam at its live sweep angle (not snap to a
-   *  fixed door angle). This is the angle in degrees we lock to. */
+  /** When the cop strikes we freeze the beam at its live sweep angle. */
   const [frozenAngle, setFrozenAngle] = useState<number | null>(null);
+  /** Live spotlight angle driven by JS (not CSS) so we always know the exact
+   *  angle without read-timing drift. Updated 60Hz by an rAF loop while sweeping. */
+  const [liveAngle, setLiveAngle] = useState<number>(-35);
+  const liveAngleRef = useRef<number>(-35);
+  const sweepRafRef = useRef<number | null>(null);
   const timeouts = useRef<number[]>([]);
   const tickInterval = useRef<number | null>(null);
   const pickDeadline = useRef<number>(0);
-  const searchlightRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => {
       timeouts.current.forEach(clearTimeout);
       if (tickInterval.current) clearInterval(tickInterval.current);
+      if (sweepRafRef.current) cancelAnimationFrame(sweepRafRef.current);
     };
   }, []);
+
+  /** JS-driven spotlight sweep. Runs an rAF loop while there's no lock, updating
+   *  liveAngle (and the ref for instant reads). 5s period, sine curve between
+   *  ±35°. Stops as soon as copPath is set; resumes when it's cleared. */
+  useEffect(() => {
+    if (copPath !== undefined) {
+      // Locked — stop the sweep.
+      if (sweepRafRef.current) {
+        cancelAnimationFrame(sweepRafRef.current);
+        sweepRafRef.current = null;
+      }
+      return;
+    }
+    const PERIOD = 5000;
+    const AMP = 35;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = ((now - start) % PERIOD) / PERIOD; // 0..1
+      const angle = Math.sin(t * Math.PI * 2) * AMP;
+      liveAngleRef.current = angle;
+      setLiveAngle(angle);
+      sweepRafRef.current = requestAnimationFrame(tick);
+    };
+    sweepRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (sweepRafRef.current) {
+        cancelAnimationFrame(sweepRafRef.current);
+        sweepRafRef.current = null;
+      }
+    };
+  }, [copPath]);
 
   const playerThug = thugs.find((t) => t.isPlayer) ?? thugs[0];
   const aliveCount = thugs.filter((t) => t.alive).length;
@@ -89,20 +124,9 @@ export function Game() {
   }, [playerThug.alive, phase]);
   const pool = useMemo(() => calculatePool(bet), [bet]);
 
-  /** Read the live rotation angle (in degrees) from the searchlight DOM element's
-   *  computed transform matrix. Returns 0 if the element isn't there yet. */
-  const readSearchlightAngle = (): number => {
-    const el = searchlightRef.current;
-    if (!el) return 0;
-    const matrix = window.getComputedStyle(el).transform;
-    if (!matrix || matrix === 'none') return 0;
-    // matrix(a, b, c, d, tx, ty) — rotation = atan2(b, a)
-    const m = matrix.match(/matrix\(([^)]+)\)/);
-    if (!m) return 0;
-    const [a, b] = m[1].split(',').map(Number);
-    const rad = Math.atan2(b, a);
-    return rad * (180 / Math.PI);
-  };
+  /** Read the live JS-driven beam angle. No DOM read, no race condition —
+   *  the angle is whatever liveAngleRef.current is at this exact moment. */
+  const readSearchlightAngle = (): number => liveAngleRef.current;
 
   /** Exact angle to point the beam at each gate. Used both for boundaries
    *  in angleToDoor and for snapping the locked beam onto a gate's center. */
@@ -487,13 +511,11 @@ export function Game() {
           >
             <div className="yard-vignette" />
 
-            {/* Searchlight: sweeps continuously on a center pivot. When the cop
-                strikes, we FREEZE the beam at its current live angle (not snap to
-                a chosen door). The door beneath the beam tip is the one eliminated. */}
+            {/* Searchlight: JS-driven angle. The displayed angle is the same
+                value used to decide which gate gets struck — no read drift. */}
             <div
-              ref={searchlightRef}
-              className={`searchlight ${copPath ? 'searchlight-locked' : 'searchlight-sweep'}`}
-              style={frozenAngle !== null ? { transform: `rotate(${frozenAngle}deg)` } : undefined}
+              className={`searchlight ${copPath ? 'searchlight-locked' : ''}`}
+              style={{ transform: `rotate(${frozenAngle ?? liveAngle}deg)` }}
             >
               <div className="searchlight-beam" />
               <div className="searchlight-pool" />
