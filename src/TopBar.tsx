@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './auth';
+import { isMuted, toggleMuted, sfx } from './sound';
 import './TopBar.css';
 
 /** Tweens a number from previous → current over ~600ms whenever it changes.
@@ -52,6 +53,7 @@ export function TopBar({
   const [open, setOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState('10000');
+  const [muted, setMutedState] = useState(isMuted());
 
   // Hooks must run unconditionally — call before any early return.
   const { display: tickedBalance, isTicking, trend } = useTickingNumber(user?.balance ?? 0);
@@ -82,6 +84,18 @@ export function TopBar({
           </button>
           <button className="rules-btn" onClick={onShowRules} aria-label="How to play" title="How to play">
             ?
+          </button>
+          <button
+            className="rules-btn mute-btn"
+            onClick={() => {
+              const next = toggleMuted();
+              setMutedState(next);
+              if (!next) sfx.click(); // brief audible confirmation when unmuting
+            }}
+            aria-label={muted ? 'Unmute' : 'Mute'}
+            title={muted ? 'Unmute' : 'Mute'}
+          >
+            {muted ? '🔇' : '🔊'}
           </button>
         </div>
 

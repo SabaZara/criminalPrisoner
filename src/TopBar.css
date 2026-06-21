@@ -270,3 +270,6 @@
     0 0 16px rgba(239, 68, 68, 0.35);
 }
 .balance-down .balance-num { color: #fca5a5 !important; }
+
+/* Mute button uses the same chip style as the rules button. */
+.mute-btn { font-family: inherit; font-size: 14px; }

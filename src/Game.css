@@ -273,17 +273,36 @@
   mix-blend-mode: screen;
 }
 
-/* Pendulum sweep: pivot fixed at center top. Pure rotation around the lamp —
-   no translation. ease-in-out gives the natural pendulum slow-at-extremes feel. */
+/* Pendulum sweep: pivot fixed at center top. LINEAR timing with many
+   evenly-spaced keyframes that trace a sine curve from -35° to +35° to -35°.
+   This produces buttery motion without the visible jumps that ease-in-out
+   on sparse keyframes was creating. */
 .searchlight-sweep {
-  animation: searchlightSwing 5s ease-in-out infinite;
+  animation: searchlightSwing 5s linear infinite;
 }
 @keyframes searchlightSwing {
-  0%   { transform: rotate(0deg); }
-  25%  { transform: rotate(-35deg); }   /* reaches door A */
-  50%  { transform: rotate(0deg); }
-  75%  { transform: rotate(35deg); }    /* reaches door D */
-  100% { transform: rotate(0deg); }
+  /* sin curve from -35 to +35 over 0..50, then back over 50..100 */
+  0%   { transform: rotate(-35deg); }
+  5%   { transform: rotate(-34.1deg); }
+  10%  { transform: rotate(-31.5deg); }
+  15%  { transform: rotate(-27.2deg); }
+  20%  { transform: rotate(-21.3deg); }
+  25%  { transform: rotate(-14deg); }
+  30%  { transform: rotate(-5.5deg); }
+  35%  { transform: rotate(3.5deg); }
+  40%  { transform: rotate(12.3deg); }
+  45%  { transform: rotate(20.5deg); }
+  50%  { transform: rotate(27.5deg); }
+  55%  { transform: rotate(32.5deg); }
+  60%  { transform: rotate(34.7deg); }
+  65%  { transform: rotate(34deg); }
+  70%  { transform: rotate(30deg); }
+  75%  { transform: rotate(23deg); }
+  80%  { transform: rotate(13.5deg); }
+  85%  { transform: rotate(2.5deg); }
+  90%  { transform: rotate(-10deg); }
+  95%  { transform: rotate(-23deg); }
+  100% { transform: rotate(-35deg); }
 }
 
 /* Locked: turn red and pulse brightness. The transform is FROZEN at whatever
@@ -449,9 +468,9 @@
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  bottom: 48%;
-  height: 16%;
-  filter: brightness(0.85);
+  bottom: 42%;
+  height: 22%;       /* readable at the gate, still smaller than start position for perspective */
+  filter: brightness(0.9);
 }
 .thug-on-A { left: 28%; }
 .thug-on-B { left: 43%; }
@@ -928,10 +947,14 @@
 }
 .char-card:hover::before { opacity: 1; }
 .char-card-img {
-  width: 100%;
-  max-width: 110px;
-  height: auto;
+  /* Height-based so every sprite, regardless of native aspect ratio,
+     renders at the same standing height in the picker grid. */
+  height: 160px;
+  width: auto;
+  max-width: 100%;
   display: block;
+  margin: 0 auto;
+  object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
   pointer-events: none;
   position: relative;

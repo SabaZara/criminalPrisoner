@@ -19,6 +19,7 @@ import { storage } from './storage';
 import type { GamePhase, Path, Thug } from './types';
 import { TopBar } from './TopBar';
 import { SPRITES } from './assets/sprites';
+import { sfx } from './sound';
 import './Game.css';
 
 const BET_STEP = 1000;
@@ -75,6 +76,7 @@ export function Game() {
   /** Watch for player alive→dead transition during a round to fire the BUSTED flash. */
   useEffect(() => {
     if (wasAliveRef.current && !playerThug.alive && phase !== 'idle' && phase !== 'character-pick') {
+      sfx.busted();
       setBustedFlash(true);
       const t = window.setTimeout(() => setBustedFlash(false), 1500);
       timeouts.current.push(t);
@@ -166,6 +168,7 @@ export function Game() {
     // already inside that gate's range — feels natural, not jumpy.)
     setFrozenAngle(DOOR_ANGLES[cp]);
     setCopPath(cp);
+    sfx.strike();
     runRound(cp);
   };
 
@@ -209,6 +212,7 @@ export function Game() {
   const choosePath = (p: Path) => {
     if (phase !== 'choosing') return;
     if (!playerThug.alive) return;
+    sfx.pick();
     setThugs((cur) => cur.map((t) => (t.isPlayer ? { ...t, chosenPath: p } : t)));
   };
 
@@ -332,7 +336,11 @@ export function Game() {
     setWinners(gameWinners);
     const playerWon = gameWinners.some((w) => w.isPlayer);
     const share = playerWon ? Math.floor(pool / gameWinners.length) : 0;
-    if (playerWon) updateBalance(share);
+    if (playerWon) {
+      updateBalance(share);
+      // Slight delay so the strike sound doesn't overlap the win chord.
+      window.setTimeout(() => sfx.win(), 250);
+    }
     setPayoutToPlayer(share);
 
     storage.pushHistory({
@@ -662,9 +670,10 @@ export function Game() {
 function StartCountdown() {
   const [n, setN] = useState(3);
   useEffect(() => {
-    const id1 = window.setTimeout(() => setN(2), 700);
-    const id2 = window.setTimeout(() => setN(1), 1400);
-    const id3 = window.setTimeout(() => setN(0), 2100);
+    sfx.countdownTick(); // initial "3"
+    const id1 = window.setTimeout(() => { setN(2); sfx.countdownTick(); }, 700);
+    const id2 = window.setTimeout(() => { setN(1); sfx.countdownTick(); }, 1400);
+    const id3 = window.setTimeout(() => { setN(0); sfx.countdownGo(); }, 2100);
     return () => {
       clearTimeout(id1); clearTimeout(id2); clearTimeout(id3);
     };
