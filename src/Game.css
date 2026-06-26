@@ -194,14 +194,15 @@
   font-weight: 900;
 }
 
-/* The Yard */
+/* The Yard. background-size: 100% 100% stretches the painted bg to fully
+   fill the container — never crops paths or wall props off the edges. */
 .yard {
   position: relative;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(212, 175, 55, 0.2);
   background-color: #1a1a18;
-  background-size: cover;
+  background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
   display: flex;
@@ -290,14 +291,15 @@
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — embedded in the back wall, just a tiny step forward to show
-   depth from the wall surface. */
+/* Doors — sit at the END of each painted path on the wall. x-positions
+   line up with the center of each path in the new compound bg, base sits
+   right at the wall-dirt boundary (~30% from top = bottom: 70%). */
 .door {
   position: absolute;
-  bottom: 64%;       /* small forward nudge from the wall (was 68%) */
+  bottom: 62%;       /* gates straddle the wall base — half on wall, half on path-end */
   width: 13%;
   max-width: 150px;
-  min-width: 70px;
+  min-width: 72px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -308,10 +310,12 @@
   z-index: 2;
   display: block;
 }
-.door-A { left: 28%; }
-.door-B { left: 43%; }
-.door-C { left: 57%; }
-.door-D { left: 72%; }
+/* Path centers in the new compound bg (left to right: red-dirt, yellow-stripe,
+   blue-grate, gravel-with-moss). */
+.door-A { left: 24%; }
+.door-B { left: 42%; }
+.door-C { left: 58%; }
+.door-D { left: 76%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -440,11 +444,11 @@
   height: 22%;       /* readable at the gate, still smaller than start position for perspective */
   filter: brightness(0.9);
 }
-/* Same x as the gates above — thugs walk straight up the path to their door. */
-.thug-on-A { left: 28%; }
-.thug-on-B { left: 43%; }
-.thug-on-C { left: 57%; }
-.thug-on-D { left: 72%; }
+/* Same x as the gates — thugs walk straight up the path to their door. */
+.thug-on-A { left: 24%; }
+.thug-on-B { left: 42%; }
+.thug-on-C { left: 58%; }
+.thug-on-D { left: 76%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
