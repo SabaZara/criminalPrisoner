@@ -130,21 +130,21 @@ export function Game() {
 
   /** Exact angle to point the beam at each gate. Used both for boundaries
    *  in angleToDoor and for snapping the locked beam onto a gate's center. */
-  /** Gates at x = 24/42/58/76 (offsets ±26/±8 from center). Beam vertical
-   *  reach ≈ 38%. atan(26/38) ≈ 34°, atan(8/38) ≈ 12°. */
+  /** Gates at x = 25/42/58/75 (offsets ±25/±8 from center). Beam vertical
+   *  reach ≈ 38%. atan(25/38) ≈ 33°, atan(8/38) ≈ 12°. */
   const DOOR_ANGLES: Record<Path, number> = {
-    A: -34,
+    A: -33,
     B: -12,
     C: 12,
-    D: 34,
+    D: 33,
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
-   *  Boundaries at midpoints between adjacent gate angles: ±23° and 0°. */
+   *  Boundaries at midpoints between adjacent gate angles: ±22.5° and 0°. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -23) return 'A';
+    if (angle < -22) return 'A';
     if (angle < 0) return 'B';
-    if (angle < 23) return 'C';
+    if (angle < 22) return 'C';
     return 'D';
   };
 
