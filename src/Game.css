@@ -258,17 +258,21 @@
 }
 .searchlight-pool {
   position: absolute;
-  bottom: -4%;
+  bottom: -7%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 80%;          /* small bright pool — narrower than the gap between gates */
-  height: 24%;
+  /* Round pool of light sitting on the floor in front of the gate. Slight
+     vertical squash (0.62) gives it floor-perspective without going flat-oval. */
+  transform: translateX(-50%) scaleY(0.62);
+  width: 120%;         /* circular pool — as wide as it is tall before the squash */
+  aspect-ratio: 1 / 1; /* keep it round; squash above adds the floor tilt */
+  height: auto;
+  border-radius: 50%;
   background: radial-gradient(
-    ellipse at center,
+    circle at center,
     rgba(var(--beam-r), var(--beam-g), var(--beam-b), 1) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 35%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 70%,
-    transparent 100%
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.6) 30%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.18) 60%,
+    transparent 78%
   );
   filter: blur(5px);
   mix-blend-mode: screen;
