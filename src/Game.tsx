@@ -524,8 +524,19 @@ export function Game() {
               style={{ transform: `rotate(${frozenAngle ?? liveAngle}deg)` }}
             >
               <div className="searchlight-beam" />
-              <div className="searchlight-pool" />
             </div>
+
+            {/* Floor pool: the bright spot the beam casts on the ground. It is
+                NOT a child of the rotating beam — it stays flat on the floor and
+                only slides horizontally to wherever the beam currently lands, so
+                it reads like real light on the ground instead of rotating with
+                the beam. floorX = 50 + tan(angle) * reach (reach ≈ 58% of yard). */}
+            <div
+              className={`searchlight-pool ${copPath ? 'searchlight-locked' : ''}`}
+              style={{
+                left: `${50 + Math.tan(((frozenAngle ?? liveAngle) * Math.PI) / 180) * 58}%`,
+              }}
+            />
 
             {PATHS.map((p) => (
               <button

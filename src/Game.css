@@ -256,26 +256,33 @@
   filter: blur(3.5px);
   mix-blend-mode: screen;
 }
+/* Floor pool — a sibling of .searchlight (NOT a child), so it never rotates
+   with the beam. It sits flat on the floor and only its `left` slides (set
+   inline from JS) to track where the beam lands. The smooth `left` transition
+   keeps it gliding along the ground instead of snapping. */
 .searchlight-pool {
   position: absolute;
-  bottom: -7%;
-  left: 50%;
-  /* Round pool of light sitting on the floor in front of the gate. Slight
-     vertical squash (0.62) gives it floor-perspective without going flat-oval. */
-  transform: translateX(-50%) scaleY(0.62);
-  width: 120%;         /* circular pool — as wide as it is tall before the squash */
-  aspect-ratio: 1 / 1; /* keep it round; squash above adds the floor tilt */
-  height: auto;
+  top: 52%;            /* on the floor in front of the gates */
+  width: 18%;          /* round pool, sized in % of yard width */
+  aspect-ratio: 1 / 1;
+  /* Center on the computed `left`, plus a vertical squash for floor perspective. */
+  transform: translate(-50%, -50%) scaleY(0.55);
   border-radius: 50%;
+  z-index: 2;
+  pointer-events: none;
+  --beam-r: 255;
+  --beam-g: 252;
+  --beam-b: 215;
   background: radial-gradient(
     circle at center,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 1) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.6) 30%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.18) 60%,
-    transparent 78%
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.95) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5) 32%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 62%,
+    transparent 80%
   );
-  filter: blur(5px);
+  filter: blur(6px);
   mix-blend-mode: screen;
+  transition: left 0.08s linear;
 }
 
 /* The sweep is now driven from JS (requestAnimationFrame loop in Game.tsx
@@ -283,11 +290,15 @@
    CSS animation needed for the sweep itself — gives us perfect read-without-
    drift when locking in the cop's target gate. */
 
-/* Locked: turn red and pulse brightness. */
+/* Locked: turn red (applies to both the beam and the floor pool). */
 .searchlight-locked {
   --beam-r: 239;
   --beam-g: 68;
   --beam-b: 68;
+}
+/* Brightness pulse only on the beam container — the floor pool keeps its
+   own blur filter (the animation would otherwise override it). */
+.searchlight.searchlight-locked {
   animation: searchlightLockPulse 0.55s ease-in-out infinite;
 }
 @keyframes searchlightLockPulse {
