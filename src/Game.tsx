@@ -87,7 +87,9 @@ export function Game() {
       return;
     }
     const PERIOD = 5000;
-    const AMP = 34;
+    // Sweep the full floor: outer doors (A/D) sit at ±23°, so amplitude must
+    // reach past them so the beam clearly travels all the way to every door.
+    const AMP = 40;
     const start = performance.now();
     const tick = (now: number) => {
       const t = ((now - start) % PERIOD) / PERIOD; // 0..1
@@ -130,21 +132,22 @@ export function Game() {
 
   /** Exact angle to point the beam at each gate. Used both for boundaries
    *  in angleToDoor and for snapping the locked beam onto a gate's center. */
-  /** Gates at x = 25/42/58/75 (offsets ±25/±8 from center). Beam vertical
-   *  reach ≈ 38%. atan(25/38) ≈ 33°, atan(8/38) ≈ 12°. */
+  /** Gates at x = 25/42/58/75 (offsets ±25/±8 from center). The beam now reaches
+   *  down to the FLOOR in front of the gates (vertical reach ≈ 58%), so the angle
+   *  to point at each gate's column is shallower: atan(25/58) ≈ 23°, atan(8/58) ≈ 8°. */
   const DOOR_ANGLES: Record<Path, number> = {
-    A: -33,
-    B: -12,
-    C: 12,
-    D: 33,
+    A: -23,
+    B: -8,
+    C: 8,
+    D: 23,
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
-   *  Boundaries at midpoints between adjacent gate angles: ±22.5° and 0°. */
+   *  Boundaries at midpoints between adjacent gate angles: ±15.5° and 0°. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -22) return 'A';
+    if (angle < -15) return 'A';
     if (angle < 0) return 'B';
-    if (angle < 22) return 'C';
+    if (angle < 15) return 'C';
     return 'D';
   };
 

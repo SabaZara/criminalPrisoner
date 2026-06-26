@@ -231,7 +231,7 @@
   top: -2%;
   left: 50%;
   width: 16%;
-  height: 42%;          /* longer beam so the bright tip lands ON the gate face */
+  height: 64%;          /* longer beam so the bright pool lands on the FLOOR in front of the gates, not on the gate faces */
   margin-left: -8%;
   transform-origin: 50% 0%;
   pointer-events: none;
