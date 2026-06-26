@@ -4,18 +4,19 @@ import type { Path, Personality, Thug } from './types';
 /** Roster slot → (name, personality). The player picks one slot to play AS; the rest are bots. */
 type Slot = { name: string; personality: Personality };
 /* Each entry maps to the matching sprite slot (thug-1.png .. thug-10.png).
- * Names are loosely themed to fit each sprite — slot 7 is the female thug. */
+ * New roster — chunky thug + military crew. Personality spread preserved:
+ * 2 risky, 3 safe, 1 random, 2 sticky, 2 flighty. */
 const ROSTER: Slot[] = [
-  { name: 'Viper',  personality: 'risky' },   // 1: white tank, tatted, orange pants
-  { name: 'Shadow', personality: 'safe' },    // 2: orange 07 jumpsuit
-  { name: 'Drift',  personality: 'random' },  // 3: olive scrubs, blonde back
-  { name: 'Blaze',  personality: 'risky' },   // 4: white tank, dark sweats
-  { name: 'Rocco',  personality: 'sticky' },  // 5: red 22 jersey, bald
-  { name: 'Tank',   personality: 'sticky' },  // 6: muscle, camo
-  { name: 'Raven',  personality: 'safe' },    // 7: female, camo + olive tee
-  { name: 'Bandit', personality: 'flighty' }, // 8: black tank, tatted, chain
-  { name: 'Ghost',  personality: 'safe' },    // 9: gray skull hoodie
-  { name: 'Ace',    personality: 'flighty' }, // 10: green 23 jersey
+  { name: 'Hoodie', personality: 'risky' },   // 1: black hoodie, red bandana
+  { name: 'Merc',   personality: 'safe' },    // 2: olive tactical vest
+  { name: 'Convict', personality: 'random' }, // 3: orange 07 jumpsuit, bald
+  { name: 'Spectre', personality: 'sticky' }, // 4: full black tac gear
+  { name: 'Boss',   personality: 'flighty' }, // 5: red tracksuit + gold chain
+  { name: 'Ghost',  personality: 'safe' },    // 6: ghillie suit sniper
+  { name: 'Reaper', personality: 'risky' },   // 7: leather vest, skull, mohawk
+  { name: 'Cipher', personality: 'flighty' }, // 8: black hoodie, spray can
+  { name: 'Rook',   personality: 'sticky' },  // 9: armored merc
+  { name: 'Vet',    personality: 'safe' },    // 10: camo veteran, dog tags
 ];
 
 export const PATHS: Path[] = ['A', 'B', 'C', 'D'];
