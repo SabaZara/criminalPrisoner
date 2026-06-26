@@ -291,15 +291,15 @@
   50%      { filter: brightness(1.8); }
 }
 
-/* Doors — sit at the END of each painted path on the wall. x-positions
-   line up with the center of each path in the new compound bg, base sits
-   right at the wall-dirt boundary (~30% from top = bottom: 70%). */
+/* Doors — sit at the END of each painted path, embedded in the wall.
+   Painted wall in bg-yard ends around y: 32%, so gate base at bottom: 68%
+   keeps them sitting on the wall-dirt boundary. */
 .door {
   position: absolute;
-  bottom: 62%;       /* gates straddle the wall base — half on wall, half on path-end */
-  width: 13%;
-  max-width: 150px;
-  min-width: 72px;
+  bottom: 68%;       /* base of gate flush with wall-dirt boundary */
+  width: 12%;
+  max-width: 140px;
+  min-width: 66px;
   transform: translateX(-50%);
   background: transparent;
   border: none;
@@ -310,12 +310,12 @@
   z-index: 2;
   display: block;
 }
-/* Path centers in the new compound bg (left to right: red-dirt, yellow-stripe,
-   blue-grate, gravel-with-moss). */
-.door-A { left: 24%; }
+/* Path-end x-positions in bg-yard.png: each painted path terminates at
+   the wall at these column centers. */
+.door-A { left: 25%; }
 .door-B { left: 42%; }
 .door-C { left: 58%; }
-.door-D { left: 76%; }
+.door-D { left: 75%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -445,10 +445,10 @@
   filter: brightness(0.9);
 }
 /* Same x as the gates — thugs walk straight up the path to their door. */
-.thug-on-A { left: 24%; }
+.thug-on-A { left: 25%; }
 .thug-on-B { left: 42%; }
 .thug-on-C { left: 58%; }
-.thug-on-D { left: 76%; }
+.thug-on-D { left: 75%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
