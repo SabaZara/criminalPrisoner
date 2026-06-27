@@ -310,7 +310,7 @@
    keeps them sitting on the wall-dirt boundary. */
 .door {
   position: absolute;
-  bottom: 68%;       /* base of gate at the END of its path, up against the wall */
+  bottom: 62%;       /* base of gate seated on the wall/floor base line (no x change) */
   width: 12%;
   max-width: 140px;
   min-width: 66px;
