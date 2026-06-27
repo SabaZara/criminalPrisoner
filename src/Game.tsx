@@ -569,8 +569,8 @@ export function Game() {
             <div className="thug-stage">
               {(() => {
                 /* Group thugs by the gate they've walked to so thugs at the same
-                   gate can be fanned out horizontally instead of stacking on the
-                   same x. Maps each thug id -> {idx, count} within its gate. */
+                   gate queue up the lane VERTICALLY (front-to-back) instead of
+                   stacking on the same spot. Maps each gate -> ordered thug ids. */
                 const reveal = phase !== 'idle';
                 const groups: Record<string, number[]> = {};
                 thugs.forEach((t) => {
@@ -584,13 +584,14 @@ export function Game() {
                   const onPath = reveal && path && t.alive;
                   // Starting x: spread 10 thugs evenly across 15%–85%
                   const startX = 15 + (i * 70) / 9;
-                  // Fan-out offset within the gate group: center the group on the
-                  // gate and space members ~4.2% of yard width apart.
-                  let spread = 0;
+                  // Queue offset within the gate group: stack members back-to-front
+                  // up the lane (each ~7% of yard height further up the path) so
+                  // they read as a line, not a single overlapping clump.
+                  let spreadY = 0;
                   if (onPath && path) {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
-                    spread = (idx - (group.length - 1) / 2) * 4.2;
+                    spreadY = idx * 7;
                   }
                   return (
                   <div
@@ -600,7 +601,10 @@ export function Game() {
                     } ${t.isPlayer ? 'thug-player' : ''} ${isWinner ? 'thug-winner' : ''}`}
                     style={{
                       ['--thug-start-x' as string]: `${startX}%`,
-                      ['--thug-spread' as string]: `${spread}%`,
+                      ['--thug-spread-y' as string]: `${spreadY}%`,
+                      // Closer (lower in the lane) thugs render on top of those
+                      // queued further back, so the queue overlaps correctly.
+                      zIndex: onPath ? 100 - Math.round(spreadY) : undefined,
                     }}
                   >
                     <img className="thug-body" src={t.avatar} alt={t.name} />
