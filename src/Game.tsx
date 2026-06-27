@@ -584,14 +584,14 @@ export function Game() {
                   const onPath = reveal && path && t.alive;
                   // Starting x: spread 10 thugs evenly across 15%–85%
                   const startX = 15 + (i * 70) / 9;
-                  // Queue offset within the gate group: stack members back-to-front
-                  // up the lane (each ~7% of yard height further up the path) so
-                  // they read as a line, not a single overlapping clump.
+                  // Queue offset within the gate group. The bar (start line) is the
+                  // UPPER limit — the first member sits ON the bar and extra members
+                  // stack DOWNWARD (toward the viewer), never crossing above it.
                   let spreadY = 0;
                   if (onPath && path) {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
-                    spreadY = idx * 7;
+                    spreadY = -idx * 7;
                   }
                   return (
                   <div

@@ -462,9 +462,10 @@
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  /* Stand on the path in front of the gate. --thug-spread-y queues group members
-     back-to-front up the lane so they don't stack on the exact same spot. */
-  bottom: calc(42% + var(--thug-spread-y));
+  /* Front of the queue sits ON the bar (same as the lineup start line, 30%);
+     extra members at the same gate stack DOWNWARD via the negative --thug-spread-y
+     so the column never crosses above the bar. */
+  bottom: calc(30% + var(--thug-spread-y));
   height: 22%;       /* readable on the path, smaller than start for perspective */
   filter: brightness(0.9);
 }
