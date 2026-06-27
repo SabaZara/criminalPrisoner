@@ -310,7 +310,7 @@
    keeps them sitting on the wall-dirt boundary. */
 .door {
   position: absolute;
-  bottom: 62%;       /* base of gate seated on the wall/floor base line (no x change) */
+  bottom: 59%;       /* base of gate seated on the wall/floor base line (no x change) */
   width: 12%;
   max-width: 140px;
   min-width: 66px;
@@ -332,7 +332,7 @@
    A→red lane, B→yellow lane, C→grate/blue lane, D→mossy-green right lane. */
 .door-A { left: 28.5%; }
 .door-B { left: 42.5%; }
-.door-C { left: 55%; }
+.door-C { left: 57%; }
 .door-D { left: 70.5%; }
 .door:disabled { cursor: default; }
 .door-img {
@@ -465,7 +465,7 @@
 /* Same x as the gates — thugs walk straight up the painted lane to their door. */
 .thug-on-A { left: 28.5%; }
 .thug-on-B { left: 42.5%; }
-.thug-on-C { left: 55%; }
+.thug-on-C { left: 57%; }
 .thug-on-D { left: 70.5%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */

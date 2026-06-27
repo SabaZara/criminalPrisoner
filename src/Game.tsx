@@ -143,16 +143,16 @@ export function Game() {
   const DOOR_ANGLES: Record<Path, number> = {
     A: 20,
     B: 7,
-    C: -5,
+    C: -7,
     D: -19,
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
    *  Ordered by angle (D<C<B<A). Boundaries at midpoints between adjacent
-   *  gate angles: D|C ≈ -12, C|B ≈ 1, B|A ≈ 13.5. */
+   *  gate angles: D|C ≈ -13, C|B ≈ 0, B|A ≈ 13.5. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -12) return 'D';
-    if (angle < 1) return 'C';
+    if (angle < -13) return 'D';
+    if (angle < 0) return 'C';
     if (angle < 13.5) return 'B';
     return 'A';
   };
