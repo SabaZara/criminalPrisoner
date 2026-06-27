@@ -567,27 +567,49 @@ export function Game() {
                 walk to a different door. Everyone has settled by the time the round
                 resolves. */}
             <div className="thug-stage">
-              {thugs.map((t, i) => {
-                const path = t.chosenPath;
+              {(() => {
+                /* Group thugs by the gate they've walked to so thugs at the same
+                   gate can be fanned out horizontally instead of stacking on the
+                   same x. Maps each thug id -> {idx, count} within its gate. */
                 const reveal = phase !== 'idle';
-                const isWinner = winners.some((w) => w.id === t.id);
-                const onPath = reveal && path && t.alive;
-                // Starting x: spread 10 thugs evenly across 15%–85%
-                const startX = 15 + (i * 70) / 9;
-                return (
+                const groups: Record<string, number[]> = {};
+                thugs.forEach((t) => {
+                  if (reveal && t.chosenPath && t.alive) {
+                    (groups[t.chosenPath] ??= []).push(t.id);
+                  }
+                });
+                return thugs.map((t, i) => {
+                  const path = t.chosenPath;
+                  const isWinner = winners.some((w) => w.id === t.id);
+                  const onPath = reveal && path && t.alive;
+                  // Starting x: spread 10 thugs evenly across 15%–85%
+                  const startX = 15 + (i * 70) / 9;
+                  // Fan-out offset within the gate group: center the group on the
+                  // gate and space members ~4.2% of yard width apart.
+                  let spread = 0;
+                  if (onPath && path) {
+                    const group = groups[path];
+                    const idx = group.indexOf(t.id);
+                    spread = (idx - (group.length - 1) / 2) * 4.2;
+                  }
+                  return (
                   <div
                     key={t.id}
                     className={`thug ${onPath ? `thug-on-${path}` : ''} ${
                       t.alive ? '' : 'thug-caught'
                     } ${t.isPlayer ? 'thug-player' : ''} ${isWinner ? 'thug-winner' : ''}`}
-                    style={{ ['--thug-start-x' as string]: `${startX}%` }}
+                    style={{
+                      ['--thug-start-x' as string]: `${startX}%`,
+                      ['--thug-spread' as string]: `${spread}%`,
+                    }}
                   >
                     <img className="thug-body" src={t.avatar} alt={t.name} />
                     {t.isPlayer && <div className="you-tag">YOU</div>}
                     {reveal && path && t.alive && <div className="thug-path-tag">{path}</div>}
                   </div>
                 );
-              })}
+                });
+              })()}
             </div>
 
             {phase === 'start-countdown' && (

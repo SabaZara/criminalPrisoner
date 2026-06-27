@@ -346,7 +346,7 @@
 .door-active {
   animation: doorPulse 1.6s ease-in-out infinite;
 }
-.door-active:hover { transform: translateX(-50%) translateY(-6px); }
+/* Hover: glow only, no movement. */
 .door-active:hover .door-img {
   filter:
     drop-shadow(0 8px 14px rgba(0,0,0,0.7))
@@ -356,13 +356,12 @@
   0%, 100% { filter: drop-shadow(0 0 0 var(--door-color)); }
   50%      { filter: drop-shadow(0 0 14px var(--door-color)); }
 }
-.door-chosen {
-  transform: translateX(-50%) translateY(-8px);
-}
+/* Chosen: glow brightly to indicate selection — the gate does NOT move. */
 .door-chosen .door-img {
   filter:
     drop-shadow(0 8px 16px rgba(0,0,0,0.7))
     drop-shadow(0 0 22px var(--door-color))
+    drop-shadow(0 0 8px var(--door-color))
     drop-shadow(0 0 4px #fff);
 }
 .door-checked .door-img {
@@ -401,6 +400,8 @@
   position: absolute;
   bottom: 6%;
   left: var(--thug-start-x);
+  /* --thug-spread fans out thugs that share a gate so they don't stack. */
+  --thug-spread: 0%;
   height: 26%;
   display: flex;
   align-items: flex-end;
@@ -462,11 +463,14 @@
   height: 22%;       /* readable at the gate, still smaller than start position for perspective */
   filter: brightness(0.9);
 }
-/* Same x as the gates — thugs walk straight up the painted lane to their door. */
-.thug-on-A { left: 28.5%; }
-.thug-on-B { left: 42.5%; }
-.thug-on-C { left: 57%; }
-.thug-on-D { left: 70.5%; }
+/* Same x as the gates — thugs walk straight up the painted lane to their door.
+   --thug-spread fans group members out around the gate center so they don't
+   stack on the same spot. It's a yard-% so it resolves correctly against the
+   stage width via `left`. */
+.thug.thug-on-A { left: calc(28.5% + var(--thug-spread)); }
+.thug.thug-on-B { left: calc(42.5% + var(--thug-spread)); }
+.thug.thug-on-C { left: calc(57% + var(--thug-spread)); }
+.thug.thug-on-D { left: calc(70.5% + var(--thug-spread)); }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
