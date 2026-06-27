@@ -258,8 +258,9 @@
 }
 /* Floor pool — a sibling of .searchlight (NOT a child), so it never rotates
    with the beam. It sits flat on the floor and only its `left` slides (set
-   inline from JS) to track where the beam lands. The smooth `left` transition
-   keeps it gliding along the ground instead of snapping. */
+   inline from JS) to track where the beam lands. NO transition on `left`: the
+   beam angle is set raw every frame with no easing, so the pool must update on
+   the exact same frame to stay perfectly in sync (a transition makes it lag). */
 .searchlight-pool {
   position: absolute;
   top: 52%;            /* on the floor in front of the gates */
@@ -282,7 +283,6 @@
   );
   filter: blur(6px);
   mix-blend-mode: screen;
-  transition: left 0.08s linear;
 }
 
 /* The sweep is now driven from JS (requestAnimationFrame loop in Game.tsx
