@@ -91,8 +91,8 @@ export function Game() {
     // DOOR_ANGLES). Center the sweep on that range's midpoint (+7) and size the
     // amplitude to reach a touch past both ends, so the beam travels across all
     // four gates and not out over the empty right-hand ground.
-    const CENTER = 7;
-    const AMP = 24;
+    const CENTER = 6;
+    const AMP = 22;
     const start = performance.now();
     const tick = (now: number) => {
       const t = ((now - start) % PERIOD) / PERIOD; // 0..1
@@ -141,19 +141,19 @@ export function Game() {
    *  → A:atan(29/58)=27, B:atan(14/58)=14, C:atan(-2/58)=-2, D:atan(-13/58)=-13.
    *  Note A/B are positive, C/D negative because of the flipped projection. */
   const DOOR_ANGLES: Record<Path, number> = {
-    A: 27,
-    B: 14,
+    A: 25,
+    B: 12,
     C: -2,
-    D: -13,
+    D: -12,
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
-   *  Ordered by angle (D<-C<-B<-A). Boundaries at midpoints between adjacent
-   *  gate angles: D|C ≈ -7.5, C|B ≈ 6, B|A ≈ 20. */
+   *  Ordered by angle (D<C<B<A). Boundaries at midpoints between adjacent
+   *  gate angles: D|C ≈ -7, C|B ≈ 5, B|A ≈ 18.5. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -7.5) return 'D';
-    if (angle < 6) return 'C';
-    if (angle < 20) return 'B';
+    if (angle < -7) return 'D';
+    if (angle < 5) return 'C';
+    if (angle < 18.5) return 'B';
     return 'A';
   };
 
@@ -523,30 +523,28 @@ export function Game() {
           >
             <div className="yard-vignette" />
 
-            {/* Searchlight: JS-driven angle. The displayed angle is the same
-                value used to decide which gate gets struck — no read drift. */}
-            <div
-              className={`searchlight ${copPath ? 'searchlight-locked' : ''}`}
-              style={{ transform: `rotate(${frozenAngle ?? liveAngle}deg)` }}
-            >
-              <div className="searchlight-beam" />
-            </div>
-
-            {/* Floor pool: the bright spot the beam casts on the ground. It is
-                NOT a child of the rotating beam — it stays flat on the floor and
-                only slides horizontally to wherever the beam currently lands, so
-                it reads like real light on the ground instead of rotating with
-                the beam. The beam pivots at top center; in this layout a CSS
-                rotate(angle) swings the tip the SAME direction as the sign of the
-                angle on screen — but the floor projection must MATCH the beam, so
-                floorX = 50 - tan(angle) * reach keeps the pool on the same side
-                as the beam (a + here put it on the opposite side). */}
-            <div
-              className={`searchlight-pool ${copPath ? 'searchlight-locked' : ''}`}
-              style={{
-                left: `${50 - Math.tan(((frozenAngle ?? liveAngle) * Math.PI) / 180) * 58}%`,
-              }}
-            />
+            {/* Searchlight: ONE entity. The beam and the floor pool are a single
+                rotating unit pivoting at the lamp (top center). The pool is a
+                CHILD pinned to the BOTTOM TIP of the beam, so it can never
+                desync from where the beam points. It's counter-rotated by the
+                same angle so it lies flat on the floor while staying glued to
+                the beam tip. */}
+            {(() => {
+              const ang = frozenAngle ?? liveAngle;
+              return (
+                <div
+                  className={`searchlight ${copPath ? 'searchlight-locked' : ''}`}
+                  style={{ transform: `rotate(${ang}deg)` }}
+                >
+                  <div className="searchlight-beam" />
+                  {/* counter-rotate to stay flat on the ground; centered on tip */}
+                  <div
+                    className="searchlight-pool"
+                    style={{ transform: `translate(-50%, -50%) rotate(${-ang}deg) scaleY(0.55)` }}
+                  />
+                </div>
+              );
+            })()}
 
             {PATHS.map((p) => (
               <button

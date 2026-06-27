@@ -256,30 +256,29 @@
   filter: blur(3.5px);
   mix-blend-mode: screen;
 }
-/* Floor pool — a sibling of .searchlight (NOT a child), so it never rotates
-   with the beam. It sits flat on the floor and only its `left` slides (set
-   inline from JS) to track where the beam lands. NO transition on `left`: the
-   beam angle is set raw every frame with no easing, so the pool must update on
-   the exact same frame to stay perfectly in sync (a transition makes it lag). */
+/* Floor pool — a CHILD of .searchlight, pinned to the BOTTOM TIP of the beam.
+   Because it lives inside the rotating beam it can NEVER desync from where the
+   beam points. It is counter-rotated inline (rotate(-angle)) so it lies flat on
+   the floor instead of tilting with the beam. Anchored at the beam's bottom
+   center: left 50%, top 100%. The parent is narrow (16% of the yard), so the
+   pool is sized at ~220% of that to read as a proper round pool on the ground. */
 .searchlight-pool {
   position: absolute;
-  top: 52%;            /* on the floor in front of the gates */
-  width: 18%;          /* round pool, sized in % of yard width */
+  top: 100%;           /* anchor point = beam's bottom tip */
+  left: 50%;           /* centered on the beam tip */
+  width: 220%;         /* relative to the narrow beam parent → ~35% of yard */
   aspect-ratio: 1 / 1;
-  /* Center on the computed `left`, plus a vertical squash for floor perspective. */
-  transform: translate(-50%, -50%) scaleY(0.55);
   border-radius: 50%;
+  /* The disc is CENTERED on the tip via translate(-50%,-50%) in the inline
+     transform; rotation/squash pivot at that center. */
   z-index: 2;
   pointer-events: none;
-  --beam-r: 255;
-  --beam-g: 252;
-  --beam-b: 215;
   background: radial-gradient(
     circle at center,
     rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.95) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5) 32%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 62%,
-    transparent 80%
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5) 28%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 55%,
+    transparent 72%
   );
   filter: blur(6px);
   mix-blend-mode: screen;
@@ -329,10 +328,10 @@
    wall at these column centers (measured off the brightened bg art):
    red≈21%, yellow≈36%, grate≈52%, blue≈63%. Gates sit at the end of their
    own painted path. */
-.door-A { left: 21%; }
-.door-B { left: 36%; }
+.door-A { left: 23%; }
+.door-B { left: 38%; }
 .door-C { left: 52%; }
-.door-D { left: 63%; }
+.door-D { left: 62%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -462,10 +461,10 @@
   filter: brightness(0.9);
 }
 /* Same x as the gates — thugs walk straight up the painted lane to their door. */
-.thug-on-A { left: 21%; }
-.thug-on-B { left: 36%; }
+.thug-on-A { left: 23%; }
+.thug-on-B { left: 38%; }
 .thug-on-C { left: 52%; }
-.thug-on-D { left: 63%; }
+.thug-on-D { left: 62%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
