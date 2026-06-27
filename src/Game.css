@@ -387,12 +387,15 @@
   min-height: 100px;
 }
 
-/* Thug overlay layer — absolutely positioned thugs that can walk up paths. */
+/* Thug overlay layer — absolutely positioned thugs that can walk up paths.
+   Sits BELOW the gates (.door is z-index 2) so thugs who walk up to their gate
+   stand behind it. During the lineup phase thugs are at the bottom and gates up
+   at the wall, so there's no overlap and the lower layer is invisible anyway. */
 .thug-stage {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 3;
+  z-index: 1;
 }
 /* Thugs are sized by HEIGHT (with a max-width safety) and bottom-anchored
    so they all stand on the same baseline regardless of sprite aspect ratio. */
@@ -453,17 +456,18 @@
   position: absolute;
   top: -14px;
 }
-/* Walk to chosen door: thugs walk UP the path toward the gate, stopping
-   with clear breathing room between them and the wall. */
+/* Walk to chosen door: thugs walk all the way UP the path to stand BEHIND their
+   gate (at the wall). They render behind the gate so the gate overlaps them. */
 .thug-on-A,
 .thug-on-B,
 .thug-on-C,
 .thug-on-D {
-  /* --thug-spread-y queues group members back-to-front up the lane (further up
-     the path = higher `bottom`) so they don't stack on the same spot. */
-  bottom: calc(42% + var(--thug-spread-y));
-  height: 22%;       /* readable at the gate, still smaller than start position for perspective */
-  filter: brightness(0.9);
+  /* Base up at the gate. --thug-spread-y queues group members back-to-front up
+     the lane so they don't stack on the exact same spot. */
+  bottom: calc(58% + var(--thug-spread-y));
+  height: 16%;       /* smaller — they're far up the path at the wall (perspective) */
+  filter: brightness(0.85);
+  z-index: 1;        /* BEHIND the gates (.door is z-index 2) */
 }
 /* Same x as the gates — thugs walk straight up the painted lane to their door. */
 .thug.thug-on-A { left: 28.5%; }
