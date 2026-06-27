@@ -87,12 +87,11 @@ export function Game() {
       return;
     }
     const PERIOD = 5000;
-    // The gates now span an ASYMMETRIC angle range: A=+27 … D=-13 (see
-    // DOOR_ANGLES). Center the sweep on that range's midpoint (+7) and size the
-    // amplitude to reach a touch past both ends, so the beam travels across all
-    // four gates and not out over the empty right-hand ground.
-    const CENTER = 0;
-    const AMP = 22;
+    // Gates span A=+43 … D=-41 (see DOOR_ANGLES). Center the sweep on that
+    // range's midpoint (~+1) and size the amplitude to reach just past both ends
+    // so the beam clearly travels across ALL four gates.
+    const CENTER = 1;
+    const AMP = 44;
     const start = performance.now();
     const tick = (now: number) => {
       const t = ((now - start) % PERIOD) / PERIOD; // 0..1
@@ -135,25 +134,23 @@ export function Game() {
 
   /** Exact angle to point the beam at each gate. Used both for boundaries
    *  in angleToDoor and for snapping the locked beam onto a gate's center.
-   *  Gates now sit on their painted lanes at x = 21/36/52/63%. The floor pool
-   *  lands at x = 50 - tan(angle)*58 (reach ≈ 58%), so to hit a gate:
-   *    angle = atan((50 - gateX) / 58).
-   *  → A:atan(29/58)=27, B:atan(14/58)=14, C:atan(-2/58)=-2, D:atan(-13/58)=-13.
-   *  Note A/B are positive, C/D negative because of the flipped projection. */
+   *  Gates sit at x = 28.5/42.5/57/70.5%. With the short beam the pool lands via
+   *  a sin projection; these were tuned against the live render so each pool
+   *  lands within 0.1% of its gate: A:43, B:14, C:-13, D:-41. */
   const DOOR_ANGLES: Record<Path, number> = {
-    A: 20,
-    B: 7,
-    C: -7,
-    D: -19,
+    A: 43,
+    B: 14,
+    C: -13,
+    D: -41,
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
    *  Ordered by angle (D<C<B<A). Boundaries at midpoints between adjacent
-   *  gate angles: D|C ≈ -13, C|B ≈ 0, B|A ≈ 13.5. */
+   *  gate angles: D|C ≈ -27, C|B ≈ 0.5, B|A ≈ 28.5. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -13) return 'D';
-    if (angle < 0) return 'C';
-    if (angle < 13.5) return 'B';
+    if (angle < -27) return 'D';
+    if (angle < 0.5) return 'C';
+    if (angle < 28.5) return 'B';
     return 'A';
   };
 

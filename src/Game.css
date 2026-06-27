@@ -230,9 +230,9 @@
   position: absolute;
   top: -2%;
   left: 50%;
-  width: 16%;
-  height: 64%;          /* longer beam so the bright pool lands on the FLOOR in front of the gates, not on the gate faces */
-  margin-left: -8%;
+  width: 11%;           /* narrower light shaft */
+  height: 50%;          /* shorter beam so the pool lands UP on the lane near the gates, not on the thugs */
+  margin-left: -5.5%;
   transform-origin: 50% 0%;
   pointer-events: none;
   z-index: 3;
@@ -245,15 +245,15 @@
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.45) 50%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 80%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.3)  100%
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.6) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5) 55%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.6) 85%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.35) 100%
   );
-  /* Tighter tip: was 100/0 at bottom, now 78/22 — beam stays narrow enough
-     that B and C don't bleed into each other. */
-  clip-path: polygon(40% 0%, 60% 0%, 78% 100%, 22% 100%);
-  filter: blur(3.5px);
+  /* Tight, crisp shaft — narrow at the top, fans only slightly to the tip so it
+     reads as a focused beam pointing at one gate, not a wide wash. */
+  clip-path: polygon(42% 0%, 58% 0%, 70% 100%, 30% 100%);
+  filter: blur(2px);
   mix-blend-mode: screen;
 }
 /* Floor pool — a CHILD of .searchlight, pinned to the BOTTOM TIP of the beam.
@@ -266,7 +266,7 @@
   position: absolute;
   top: 100%;           /* anchor point = beam's bottom tip */
   left: 50%;           /* centered on the beam tip */
-  width: 220%;         /* relative to the narrow beam parent → ~35% of yard */
+  width: 170%;         /* relative to the narrow beam parent → ~19% of yard: a tidy round pool */
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   /* The disc is CENTERED on the tip via translate(-50%,-50%) in the inline
@@ -275,12 +275,12 @@
   pointer-events: none;
   background: radial-gradient(
     circle at center,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.95) 0%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.5) 28%,
-    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 55%,
-    transparent 72%
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 1) 0%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.55) 30%,
+    rgba(var(--beam-r), var(--beam-g), var(--beam-b), 0.15) 58%,
+    transparent 74%
   );
-  filter: blur(6px);
+  filter: blur(4px);
   mix-blend-mode: screen;
 }
 
@@ -400,12 +400,12 @@
    so they all stand on the same baseline regardless of sprite aspect ratio. */
 .thug {
   position: absolute;
-  /* Lineup baseline sits up at the floor mid-line — nobody stands below it. */
-  bottom: 30%;
+  /* Starting line: thugs line up near the bottom of the yard before they walk. */
+  bottom: 6%;
   left: var(--thug-start-x);
   /* --thug-spread-y queues thugs that share a gate up the lane so they don't stack. */
   --thug-spread-y: 0%;
-  height: 22%;
+  height: 26%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
