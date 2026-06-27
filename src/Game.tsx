@@ -87,13 +87,16 @@ export function Game() {
       return;
     }
     const PERIOD = 5000;
-    // Sweep the full floor: outer doors (A/D) sit at ±23°, so amplitude must
-    // reach past them so the beam clearly travels all the way to every door.
-    const AMP = 40;
+    // The gates now span an ASYMMETRIC angle range: A=+27 … D=-13 (see
+    // DOOR_ANGLES). Center the sweep on that range's midpoint (+7) and size the
+    // amplitude to reach a touch past both ends, so the beam travels across all
+    // four gates and not out over the empty right-hand ground.
+    const CENTER = 7;
+    const AMP = 24;
     const start = performance.now();
     const tick = (now: number) => {
       const t = ((now - start) % PERIOD) / PERIOD; // 0..1
-      const angle = Math.sin(t * Math.PI * 2) * AMP;
+      const angle = CENTER + Math.sin(t * Math.PI * 2) * AMP;
       liveAngleRef.current = angle;
       setLiveAngle(angle);
       sweepRafRef.current = requestAnimationFrame(tick);
@@ -131,24 +134,27 @@ export function Game() {
   const readSearchlightAngle = (): number => liveAngleRef.current;
 
   /** Exact angle to point the beam at each gate. Used both for boundaries
-   *  in angleToDoor and for snapping the locked beam onto a gate's center. */
-  /** Gates at x = 25/42/58/75 (offsets ±25/±8 from center). The beam now reaches
-   *  down to the FLOOR in front of the gates (vertical reach ≈ 58%), so the angle
-   *  to point at each gate's column is shallower: atan(25/58) ≈ 23°, atan(8/58) ≈ 8°. */
+   *  in angleToDoor and for snapping the locked beam onto a gate's center.
+   *  Gates now sit on their painted lanes at x = 21/36/52/63%. The floor pool
+   *  lands at x = 50 - tan(angle)*58 (reach ≈ 58%), so to hit a gate:
+   *    angle = atan((50 - gateX) / 58).
+   *  → A:atan(29/58)=27, B:atan(14/58)=14, C:atan(-2/58)=-2, D:atan(-13/58)=-13.
+   *  Note A/B are positive, C/D negative because of the flipped projection. */
   const DOOR_ANGLES: Record<Path, number> = {
-    A: -23,
-    B: -8,
-    C: 8,
-    D: 23,
+    A: 27,
+    B: 14,
+    C: -2,
+    D: -13,
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
-   *  Boundaries at midpoints between adjacent gate angles: ±15.5° and 0°. */
+   *  Ordered by angle (D<-C<-B<-A). Boundaries at midpoints between adjacent
+   *  gate angles: D|C ≈ -7.5, C|B ≈ 6, B|A ≈ 20. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -15) return 'A';
-    if (angle < 0) return 'B';
-    if (angle < 15) return 'C';
-    return 'D';
+    if (angle < -7.5) return 'D';
+    if (angle < 6) return 'C';
+    if (angle < 20) return 'B';
+    return 'A';
   };
 
   const adjustBet = (dir: 1 | -1) => {
@@ -530,11 +536,15 @@ export function Game() {
                 NOT a child of the rotating beam — it stays flat on the floor and
                 only slides horizontally to wherever the beam currently lands, so
                 it reads like real light on the ground instead of rotating with
-                the beam. floorX = 50 + tan(angle) * reach (reach ≈ 58% of yard). */}
+                the beam. The beam pivots at top center; in this layout a CSS
+                rotate(angle) swings the tip the SAME direction as the sign of the
+                angle on screen — but the floor projection must MATCH the beam, so
+                floorX = 50 - tan(angle) * reach keeps the pool on the same side
+                as the beam (a + here put it on the opposite side). */}
             <div
               className={`searchlight-pool ${copPath ? 'searchlight-locked' : ''}`}
               style={{
-                left: `${50 + Math.tan(((frozenAngle ?? liveAngle) * Math.PI) / 180) * 58}%`,
+                left: `${50 - Math.tan(((frozenAngle ?? liveAngle) * Math.PI) / 180) * 58}%`,
               }}
             />
 

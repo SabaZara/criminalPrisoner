@@ -325,12 +325,14 @@
   z-index: 2;
   display: block;
 }
-/* Path-end x-positions in bg-yard.png: each painted path terminates at
-   the wall at these column centers. */
-.door-A { left: 25%; }
-.door-B { left: 42%; }
-.door-C { left: 58%; }
-.door-D { left: 75%; }
+/* Path-end x-positions in bg-yard.png: each painted lane terminates at the
+   wall at these column centers (measured off the brightened bg art):
+   red≈21%, yellow≈36%, grate≈52%, blue≈63%. Gates sit at the end of their
+   own painted path. */
+.door-A { left: 21%; }
+.door-B { left: 36%; }
+.door-C { left: 52%; }
+.door-D { left: 63%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -459,11 +461,11 @@
   height: 22%;       /* readable at the gate, still smaller than start position for perspective */
   filter: brightness(0.9);
 }
-/* Same x as the gates — thugs walk straight up the path to their door. */
-.thug-on-A { left: 25%; }
-.thug-on-B { left: 42%; }
-.thug-on-C { left: 58%; }
-.thug-on-D { left: 75%; }
+/* Same x as the gates — thugs walk straight up the painted lane to their door. */
+.thug-on-A { left: 21%; }
+.thug-on-B { left: 36%; }
+.thug-on-C { left: 52%; }
+.thug-on-D { left: 63%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
