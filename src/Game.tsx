@@ -62,6 +62,9 @@ export function Game() {
   const [liveAngle, setLiveAngle] = useState<number>(-34);
   const liveAngleRef = useRef<number>(-34);
   const sweepRafRef = useRef<number | null>(null);
+  /** Separate rAF for the lock-in glide so the sweep effect's cleanup can't
+   *  cancel it when copPath is set. */
+  const lockRafRef = useRef<number | null>(null);
   const timeouts = useRef<number[]>([]);
   const tickInterval = useRef<number | null>(null);
   const pickDeadline = useRef<number>(0);
@@ -71,6 +74,7 @@ export function Game() {
       timeouts.current.forEach(clearTimeout);
       if (tickInterval.current) clearInterval(tickInterval.current);
       if (sweepRafRef.current) cancelAnimationFrame(sweepRafRef.current);
+      if (lockRafRef.current) cancelAnimationFrame(lockRafRef.current);
     };
   }, []);
 
@@ -187,21 +191,33 @@ export function Game() {
     timeouts.current.push(t);
   };
 
-  /** Freeze the spotlight at its live angle RIGHT NOW and lock in the cop's
-   *  target door based on where the beam is pointing. Visually the beam stops
-   *  instantly — no jump. Then run the rest of the round flow with the cop's
-   *  choice already decided. Called at pick-timer end (and spectate timeout). */
+  /** Lock in the cop's target door based on where the beam is pointing, then
+   *  SMOOTHLY glide the beam to rest exactly on that gate (no instant jump).
+   *  The glide is done with a CSS transition on the searchlight rotation (see
+   *  .searchlight-locked) — we just stop the sweep, pin the current angle, then
+   *  on the next frame set the gate's exact angle so the transition animates it.
+   *  Called at pick-timer end (and spectate timeout). */
   const lockSpotlightAndRunRound = () => {
     // Read the live sweep angle to decide which gate the cop hits — that's
     // the fair part: the beam was naturally on that gate at the moment.
-    const liveAngle = readSearchlightAngle();
-    const cp = angleToDoor(liveAngle);
-    // Then snap the beam to the gate's EXACT angle so it's visually
-    // unambiguous which one got hit. (Tiny snap, since the live angle was
-    // already inside that gate's range — feels natural, not jumpy.)
-    setFrozenAngle(DOOR_ANGLES[cp]);
+    const fromAngle = readSearchlightAngle();
+    const cp = angleToDoor(fromAngle);
+    const toAngle = DOOR_ANGLES[cp];
+
+    // Stop the sweep and pin the beam at its CURRENT angle (no jump yet).
+    setFrozenAngle(fromAngle);
     setCopPath(cp);
     sfx.strike();
+
+    // Next frame: set the gate's exact angle. Because .searchlight-locked adds a
+    // CSS transition on `transform`, the beam glides from fromAngle to the gate
+    // and comes to rest on it.
+    if (lockRafRef.current) cancelAnimationFrame(lockRafRef.current);
+    lockRafRef.current = requestAnimationFrame(() => {
+      setFrozenAngle(toAngle);
+      lockRafRef.current = null;
+    });
+
     runRound(cp);
   };
 
