@@ -469,11 +469,15 @@
   height: 22%;       /* readable on the path, smaller than start for perspective */
   filter: brightness(0.9);
 }
-/* Same x as the gates — thugs walk straight up the painted lane to their door. */
-.thug.thug-on-A { left: 28.5%; }
-.thug.thug-on-B { left: 42.5%; }
-.thug.thug-on-C { left: 57%; }
-.thug.thug-on-D { left: 70.5%; }
+/* Lane centers AT THE THUG STANDING HEIGHT (bottom 30%), NOT at the gate.
+   The painted lanes splay outward toward the viewer (perspective), so at the
+   thugs' row each lane sits a bit wider than its gate at the wall: red≈20%,
+   yellow≈37%, grate≈53%, green≈72% (measured off the gridded bg). This keeps
+   thugs on their actual painted path, especially A (left) and D (right). */
+.thug.thug-on-A { left: 20%; }
+.thug.thug-on-B { left: 37%; }
+.thug.thug-on-C { left: 53%; }
+.thug.thug-on-D { left: 72%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
