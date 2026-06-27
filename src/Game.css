@@ -476,8 +476,8 @@
    thugs on their actual painted path, especially A (left) and D (right). */
 .thug.thug-on-A { left: 20%; }
 .thug.thug-on-B { left: 37%; }
-.thug.thug-on-C { left: 53%; }
-.thug.thug-on-D { left: 72%; }
+.thug.thug-on-C { left: 57%; }
+.thug.thug-on-D { left: 76%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
