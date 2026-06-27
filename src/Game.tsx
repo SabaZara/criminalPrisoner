@@ -287,10 +287,11 @@ export function Game() {
           clearInterval(tickInterval.current);
           tickInterval.current = null;
         }
-        // If the player never picked, auto-assign a random path so the round can resolve.
+        // If the player never picked, auto-assign a random gate so the round can
+        // resolve. (Find the player by flag — they may not be at index 0.)
         setThugs((cur) => {
-          const me = cur[0];
-          if (!me.chosenPath) {
+          const me = cur.find((t) => t.isPlayer);
+          if (me && me.alive && !me.chosenPath) {
             const auto = pickRandomPath();
             return cur.map((t) => (t.isPlayer ? { ...t, chosenPath: auto } : t));
           }
@@ -405,7 +406,13 @@ export function Game() {
       timestamp: Date.now(),
     });
 
-    const t = window.setTimeout(() => setPhase('final-result'), 1400);
+    const t = window.setTimeout(() => {
+      // Clear the busted-gate glow + locked beam before the result screen so the
+      // eliminated gate doesn't keep glowing.
+      setCopPath(undefined);
+      setFrozenAngle(null);
+      setPhase('final-result');
+    }, 1400);
     timeouts.current.push(t);
   };
 
