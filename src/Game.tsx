@@ -91,7 +91,7 @@ export function Game() {
     // DOOR_ANGLES). Center the sweep on that range's midpoint (+7) and size the
     // amplitude to reach a touch past both ends, so the beam travels across all
     // four gates and not out over the empty right-hand ground.
-    const CENTER = 6;
+    const CENTER = 0;
     const AMP = 22;
     const start = performance.now();
     const tick = (now: number) => {
@@ -141,19 +141,19 @@ export function Game() {
    *  → A:atan(29/58)=27, B:atan(14/58)=14, C:atan(-2/58)=-2, D:atan(-13/58)=-13.
    *  Note A/B are positive, C/D negative because of the flipped projection. */
   const DOOR_ANGLES: Record<Path, number> = {
-    A: 25,
-    B: 12,
-    C: -2,
-    D: -12,
+    A: 20,
+    B: 7,
+    C: -5,
+    D: -19,
   };
 
   /** Map a beam angle (degrees) to the door it's currently pointing at.
    *  Ordered by angle (D<C<B<A). Boundaries at midpoints between adjacent
-   *  gate angles: D|C ≈ -7, C|B ≈ 5, B|A ≈ 18.5. */
+   *  gate angles: D|C ≈ -12, C|B ≈ 1, B|A ≈ 13.5. */
   const angleToDoor = (angle: number): Path => {
-    if (angle < -7) return 'D';
-    if (angle < 5) return 'C';
-    if (angle < 18.5) return 'B';
+    if (angle < -12) return 'D';
+    if (angle < 1) return 'C';
+    if (angle < 13.5) return 'B';
     return 'A';
   };
 

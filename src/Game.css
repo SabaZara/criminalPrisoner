@@ -328,10 +328,12 @@
    wall at these column centers (measured off the brightened bg art):
    red≈21%, yellow≈36%, grate≈52%, blue≈63%. Gates sit at the end of their
    own painted path. */
-.door-A { left: 23%; }
-.door-B { left: 38%; }
-.door-C { left: 52%; }
-.door-D { left: 62%; }
+/* Gate centers set from the user's hand-marked lane brackets:
+   A→red lane, B→yellow lane, C→grate/blue lane, D→mossy-green right lane. */
+.door-A { left: 28.5%; }
+.door-B { left: 42.5%; }
+.door-C { left: 55%; }
+.door-D { left: 70.5%; }
 .door:disabled { cursor: default; }
 .door-img {
   display: block;
@@ -461,10 +463,10 @@
   filter: brightness(0.9);
 }
 /* Same x as the gates — thugs walk straight up the painted lane to their door. */
-.thug-on-A { left: 23%; }
-.thug-on-B { left: 38%; }
-.thug-on-C { left: 52%; }
-.thug-on-D { left: 62%; }
+.thug-on-A { left: 28.5%; }
+.thug-on-B { left: 42.5%; }
+.thug-on-C { left: 55%; }
+.thug-on-D { left: 70.5%; }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
