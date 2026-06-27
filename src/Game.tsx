@@ -39,6 +39,11 @@ const PATH_COLOR: Record<Path, string> = {
   D: '#c43ad4',
 };
 
+/** Lane center x (% of yard) at the thug standing height. Used to nudge queued
+ *  thugs outward as they stack down the lane (perspective splay). Matches the
+ *  .thug.thug-on-* left values in Game.css. */
+const LANE_X: Record<Path, number> = { A: 20, B: 37, C: 57, D: 76 };
+
 export function Game() {
   const { user, updateBalance } = useAuth();
   const [bet, setBet] = useState(10000);
@@ -570,7 +575,7 @@ export function Game() {
               <button
                 key={p}
                 className={`door door-${p} ${copPath === p ? 'door-checked' : ''} ${
-                  playerThug.chosenPath === p ? 'door-chosen' : ''
+                  phase === 'choosing' && playerThug.alive && playerThug.chosenPath === p ? 'door-chosen' : ''
                 } ${phase === 'choosing' && playerThug.alive ? 'door-active' : ''}`}
                 style={{ ['--door-color' as string]: PATH_COLOR[p] }}
                 onClick={() => choosePath(p)}
@@ -608,10 +613,16 @@ export function Game() {
                   // UPPER limit — the first member sits ON the bar and extra members
                   // stack DOWNWARD (toward the viewer), never crossing above it.
                   let spreadY = 0;
+                  let spreadX = 0;
                   if (onPath && path) {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
                     spreadY = -idx * 7;
+                    // Lanes splay OUTWARD as they come toward the viewer (lower on
+                    // screen). Each step down the queue, nudge x away from center so
+                    // the thug stays ON its lane (e.g. D drifts right, A drifts left).
+                    const laneX = LANE_X[path];
+                    spreadX = (laneX - 50) * 0.06 * idx;
                   }
                   return (
                   <div
@@ -622,6 +633,7 @@ export function Game() {
                     style={{
                       ['--thug-start-x' as string]: `${startX}%`,
                       ['--thug-spread-y' as string]: `${spreadY}%`,
+                      ['--thug-spread-x' as string]: `${spreadX}%`,
                       // Closer (lower in the lane) thugs render on top of those
                       // queued further back, so the queue overlaps correctly.
                       zIndex: onPath ? 100 - Math.round(spreadY) : undefined,

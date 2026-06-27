@@ -419,8 +419,10 @@
   /* Starting line: thugs line up near the bottom of the yard before they walk. */
   bottom: 6%;
   left: var(--thug-start-x);
-  /* --thug-spread-y queues thugs that share a gate up the lane so they don't stack. */
+  /* --thug-spread-y queues thugs that share a gate up the lane; --thug-spread-x
+     nudges them along the lane's perspective splay so they stay on their path. */
   --thug-spread-y: 0%;
+  --thug-spread-x: 0%;
   height: 26%;
   display: flex;
   align-items: flex-end;
@@ -490,10 +492,10 @@
    thugs' row each lane sits a bit wider than its gate at the wall: red≈20%,
    yellow≈37%, grate≈53%, green≈72% (measured off the gridded bg). This keeps
    thugs on their actual painted path, especially A (left) and D (right). */
-.thug.thug-on-A { left: 20%; }
-.thug.thug-on-B { left: 37%; }
-.thug.thug-on-C { left: 57%; }
-.thug.thug-on-D { left: 76%; }
+.thug.thug-on-A { left: calc(20% + var(--thug-spread-x)); }
+.thug.thug-on-B { left: calc(37% + var(--thug-spread-x)); }
+.thug.thug-on-C { left: calc(57% + var(--thug-spread-x)); }
+.thug.thug-on-D { left: calc(76% + var(--thug-spread-x)); }
 /* Caught — gets removed from the yard (BUSTED red flash, then fade out
    so they vanish completely). */
 .thug-caught {
