@@ -400,11 +400,12 @@
    so they all stand on the same baseline regardless of sprite aspect ratio. */
 .thug {
   position: absolute;
-  bottom: 6%;
+  /* Lineup baseline sits up at the floor mid-line — nobody stands below it. */
+  bottom: 30%;
   left: var(--thug-start-x);
   /* --thug-spread-y queues thugs that share a gate up the lane so they don't stack. */
   --thug-spread-y: 0%;
-  height: 26%;
+  height: 22%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
