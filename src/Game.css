@@ -49,9 +49,29 @@
 @media (max-width: 1100px) {
   .stage-grid { grid-template-columns: 180px 1fr 180px; }
 }
+/* Tablet / phone: stack vertically with the yard as the hero. The "how it
+   works" panel is hidden (it lives in the ? rules modal); the player list
+   becomes a short strip below the yard. Higher-specificity selectors
+   (.stage-grid .panel) so they win over the base .panel rule's source order. */
 @media (max-width: 900px) {
-  .stage-grid { grid-template-columns: 1fr; gap: 8px; }
-  .panel { display: none; }
+  .stage-grid {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    gap: 8px;
+    padding: 0 8px;
+  }
+  .stage-grid .how-panel { display: none; }
+  .stage-grid .yard {
+    flex: 1 1 auto;
+    min-height: 220px;
+    order: 1;
+  }
+  .stage-grid .players-panel {
+    order: 2;
+    flex: 0 0 auto;
+    max-height: 30vh;
+  }
 }
 
 .panel {

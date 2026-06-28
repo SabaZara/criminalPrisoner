@@ -278,3 +278,32 @@
 
 /* Mute button uses the same chip style as the rules button. */
 .mute-btn { font-family: inherit; font-size: 15px; }
+
+/* ===== Mobile top bar ===== */
+@media (max-width: 600px) {
+  .topbar { padding: 8px 10px; gap: 6px; }
+
+  /* The centered absolute wordmark collides with the side controls on narrow
+     screens — keep just the badge centered, drop the long "LOCKDOWN" text. */
+  .brand span { display: none; }
+  .topbar-center { position: static; transform: none; }
+
+  .menu-btn { width: 38px; height: 38px; padding: 10px; }
+  .rules-btn { width: 34px; height: 34px; font-size: 15px; }
+  .topbar-left { gap: 6px; }
+
+  .balance-block { gap: 8px; }
+  .balance-btn { padding: 5px 6px; gap: 6px; }
+  .balance-coin { width: 22px; height: 22px; font-size: 12px; }
+  .balance-num { font-size: 13px; min-width: 0; }
+  .balance-plus { width: 20px; height: 20px; font-size: 13px; }
+  .user-avatar { width: 38px; height: 38px; }
+
+  .menu-drop { width: calc(100vw - 24px); left: 12px; }
+}
+
+/* Very narrow phones — drop the brand badge too so controls never overflow. */
+@media (max-width: 360px) {
+  .topbar-center { display: none; }
+  .balance-plus { display: none; }
+}
