@@ -43,9 +43,9 @@ export function Login() {
       <div className="login-bg" />
       <div className="login-card">
         <div className="login-logo">
-          <div className="logo-badge">CP</div>
-          <h1>CRIMINAL PRISONER</h1>
-          <p className="tagline">10 THUGS · 4 PATHS · 1 COP</p>
+          <div className="logo-badge">LD</div>
+          <h1>LOCKDOWN</h1>
+          <p className="tagline">10 INMATES · 4 GATES · 1 SPOTLIGHT</p>
         </div>
 
         {mode === 'closed' ? (

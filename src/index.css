@@ -1,10 +1,50 @@
+/* ===== LOCKDOWN — cartoon prison design tokens =====
+   Thick black outlines, chunky rounded panels, bold flat colors, gate-color
+   accents (red/yellow/blue/green). Matches the Among Us / Innersloth art. */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap');
+
 :root {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Type */
+  --font-display: 'Baloo 2', system-ui, sans-serif;   /* chunky rounded headings */
+  --font-body: 'Nunito', system-ui, sans-serif;       /* friendly bold body */
+
+  /* Surfaces — deep night-yard blues to sit under the painted background */
+  --ink: #0e1426;            /* darkest base */
+  --panel: #1d2740;          /* card surface */
+  --panel-2: #243152;        /* raised surface */
+  --panel-edge: #0a0f1e;     /* the thick outline color (near-black navy) */
+  --wall: #2b3a5c;           /* lighter concrete */
+
+  /* Outline + depth — the cartoon "thick black line" + drop shadow */
+  --outline: 3px;
+  --outline-color: #0a0f1e;
+  --radius: 16px;
+  --radius-sm: 11px;
+  --shadow-pop: 0 6px 0 0 var(--outline-color), 0 10px 18px -6px rgba(0,0,0,0.6);
+  --shadow-flat: 0 4px 0 0 var(--outline-color);
+
+  /* Text */
+  --text: #f3f6ff;
+  --text-dim: #93a0c0;
+
+  /* Gate accent palette (matches the painted gates) */
+  --gate-a: #e23b34;   /* red */
+  --gate-b: #f4b424;   /* yellow */
+  --gate-c: #2f7fe0;   /* blue */
+  --gate-d: #7bc23a;   /* green */
+
+  /* Brand accent — warm prison-floodlight amber */
+  --accent: #f4b424;
+  --accent-ink: #2a1c04;
+  --good: #56d364;
+  --bad: #e23b34;
+
+  font-family: var(--font-body);
+  line-height: 1.4;
+  font-weight: 700;
   color-scheme: dark;
-  color: #fff;
-  background: #0a0a0f;
+  color: var(--text);
+  background: var(--ink);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,12 +60,16 @@ html, body, #root {
 }
 
 body {
-  background: #0a0a0f;
-  color: #fff;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #213056 0%, var(--ink) 60%);
+  color: var(--text);
   overflow: hidden;
   /* Mobile hardening — avoid bounce, double-tap zoom, and tap-highlight on buttons */
   overscroll-behavior: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-button { -webkit-tap-highlight-color: transparent; }
+button { -webkit-tap-highlight-color: transparent; font-family: var(--font-body); }
+
+/* Headings default to the chunky display font. */
+h1, h2, h3, .display { font-family: var(--font-display); font-weight: 800; }

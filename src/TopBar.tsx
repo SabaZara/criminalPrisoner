@@ -101,8 +101,8 @@ export function TopBar({
 
         <div className="topbar-center">
           <div className="brand">
-            <div className="brand-badge">CP</div>
-            <span>CRIMINAL PRISONER</span>
+            <div className="brand-badge">LD</div>
+            <span>LOCKDOWN</span>
           </div>
         </div>
 
