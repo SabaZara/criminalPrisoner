@@ -169,18 +169,24 @@
   letter-spacing: 1px;
   color: #4ade80;
 }
+/* Gate badge — sits on the player's avatar (top-right corner), inside the row so
+   it never gets clipped by the panel or collides with the status text. The
+   avatar is the first grid column (28px) starting at the row's 10px padding. */
 .player-pill {
   position: absolute;
-  right: -6px;
-  top: -4px;
-  width: 18px; height: 18px;
+  left: 28px;          /* avatar left(10) + ~18 → over the avatar's right edge */
+  top: 3px;
+  width: 17px; height: 17px;
   border-radius: 50%;
   display: grid; place-items: center;
+  font-family: var(--font-display);
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 800;
   color: #fff;
-  border: 2px solid #0f0f18;
+  border: 2px solid var(--outline-color);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.5);
   animation: popIn 0.3s ease;
+  z-index: 2;
 }
 @keyframes popIn {
   from { transform: scale(0); }
