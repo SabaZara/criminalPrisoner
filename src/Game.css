@@ -60,17 +60,39 @@
     grid-template-columns: none;
     gap: 8px;
     padding: 0 8px;
+    min-height: 0;        /* allow the column to shrink so children scroll, not overflow */
   }
   .stage-grid .how-panel { display: none; }
   .stage-grid .yard {
     flex: 1 1 auto;
-    min-height: 220px;
+    min-height: 200px;
     order: 1;
   }
+  /* Player list: fixed-height strip below the yard. The inner .players-list
+     scrolls, and the panel clips at its rounded border (overflow:hidden) so a
+     row never appears half-cut against the page. */
   .stage-grid .players-panel {
     order: 2;
     flex: 0 0 auto;
-    max-height: 30vh;
+    height: 26vh;
+    min-height: 120px;
+  }
+
+  /* The bottom console must never be pushed off-screen or shrunk — give it a
+     firm footprint and brighter surface so it reads as a panel, not transparent.
+     Higher specificity (.game-stage .console-bar) beats the base rule's source
+     order. */
+  .game-stage .console-bar {
+    flex: 0 0 auto;
+    margin: 8px;
+    background: var(--panel-2);
+  }
+}
+
+/* Safe-area inset for notched phones (iPhone) so the console clears the home bar. */
+@supports (padding: max(0px)) {
+  @media (max-width: 900px) {
+    .game-stage .console-bar { margin-bottom: max(8px, env(safe-area-inset-bottom)); }
   }
 }
 

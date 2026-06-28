@@ -141,26 +141,15 @@ export function Game() {
    *  the angle is whatever liveAngleRef.current is at this exact moment. */
   const readSearchlightAngle = (): number => liveAngleRef.current;
 
-  /** Exact angle to point the beam at each gate. Used both for boundaries
-   *  in angleToDoor and for snapping the locked beam onto a gate's center.
-   *  Gates sit at x = 28.5/42.5/57/70.5%. With the short beam the pool lands via
-   *  a sin projection; these were tuned against the live render so each pool
-   *  lands within 0.1% of its gate: A:43, B:14, C:-13, D:-41. */
+  /** Exact beam angle that points at each gate, used to snap the locked beam
+   *  onto the chosen gate's center. Gates sit at x = 28.5/42.5/57/70.5%; with the
+   *  short beam the pool lands via a sin projection — these were tuned against
+   *  the live render so each pool lands within 0.1% of its gate. */
   const DOOR_ANGLES: Record<Path, number> = {
     A: 43,
     B: 14,
     C: -13,
     D: -41,
-  };
-
-  /** Map a beam angle (degrees) to the door it's currently pointing at.
-   *  Ordered by angle (D<C<B<A). Boundaries at midpoints between adjacent
-   *  gate angles: D|C ≈ -27, C|B ≈ 0.5, B|A ≈ 28.5. */
-  const angleToDoor = (angle: number): Path => {
-    if (angle < -27) return 'D';
-    if (angle < 0.5) return 'C';
-    if (angle < 28.5) return 'B';
-    return 'A';
   };
 
   const adjustBet = (dir: 1 | -1) => {
@@ -203,10 +192,11 @@ export function Game() {
    *  on the next frame set the gate's exact angle so the transition animates it.
    *  Called at pick-timer end (and spectate timeout). */
   const lockSpotlightAndRunRound = () => {
-    // Read the live sweep angle to decide which gate the cop hits — that's
-    // the fair part: the beam was naturally on that gate at the moment.
+    // FAIR cop target: pick the gate UNIFORMLY at random (each exactly 25%).
+    // (Reading the live sine-sweep angle biased the outer gates A/D, because a
+    //  sine spends more time near its extremes — that made it feel rigged.)
     const fromAngle = readSearchlightAngle();
-    const cp = angleToDoor(fromAngle);
+    const cp = pickRandomPath();
     const toAngle = DOOR_ANGLES[cp];
 
     // Stop the sweep and pin the beam at its CURRENT angle (no jump yet).
