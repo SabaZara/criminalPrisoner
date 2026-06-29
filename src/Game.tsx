@@ -44,6 +44,28 @@ const PATH_COLOR: Record<Path, string> = {
  *  .thug.thug-on-* left values in Game.css. */
 const LANE_X: Record<Path, number> = { A: 20, B: 37, C: 57, D: 76 };
 
+/** Pre-programmed quick-chat emotes. `gate` ones render as a colored gate badge
+ *  (A/B/C/D); the rest are plain emoji reactions. */
+type Emote = { token: string; gate?: Path };
+const EMOTES: Emote[] = [
+  { token: 'A', gate: 'A' },
+  { token: 'B', gate: 'B' },
+  { token: 'C', gate: 'C' },
+  { token: 'D', gate: 'D' },
+  { token: '😂' },
+  { token: '😎' },
+  { token: '😱' },
+  { token: '😭' },
+  { token: '🔥' },
+  { token: '💀' },
+  { token: '🤡' },
+  { token: '🫡' },
+  { token: '🏃' },
+  { token: '👀' },
+  { token: '🎯' },
+  { token: '🤬' },
+];
+
 export function Game() {
   const { user, updateBalance } = useAuth();
   const [bet, setBet] = useState(10000);
@@ -56,6 +78,10 @@ export function Game() {
   const [showHistory, setShowHistory] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [bustedFlash, setBustedFlash] = useState(false);
+  /** Quick-chat: a feed of recent emotes + reactions that float over the yard. */
+  const [chatLog, setChatLog] = useState<{ id: number; from: string; token: string; gate?: Path }[]>([]);
+  const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token: string; gate?: Path; x: number }[]>([]);
+  const emoteIdRef = useRef(0);
   const wasAliveRef = useRef(true);
   const [errorMsg, setErrorMsg] = useState('');
   /** ms remaining in the pick phase. >0 only while phase === 'choosing'. */
@@ -155,6 +181,20 @@ export function Game() {
   const adjustBet = (dir: 1 | -1) => {
     if (phase !== 'idle') return;
     setBet((b) => Math.max(MIN_BET, Math.min(MAX_BET, b + dir * BET_STEP)));
+  };
+
+  /** Quick-chat: append an emote to the feed and float it up over the yard. */
+  const sendEmote = (e: Emote) => {
+    sfx.click();
+    const id = ++emoteIdRef.current;
+    const me = user?.name ?? 'You';
+    setChatLog((log) => [...log.slice(-30), { id, from: me, token: e.token, gate: e.gate }]);
+    // Floating reaction over the yard at a random-ish x (20%–80%).
+    const x = 20 + Math.random() * 60;
+    setFloatingEmotes((f) => [...f, { id, token: e.token, gate: e.gate, x }]);
+    window.setTimeout(() => {
+      setFloatingEmotes((f) => f.filter((fe) => fe.id !== id));
+    }, 2200);
   };
 
   const startGame = () => {
@@ -646,6 +686,21 @@ export function Game() {
               <div className="prompt-banner spectate">SPECTATING · BOTS RUN THE REMAINING ROUNDS</div>
             )}
 
+            {/* Floating chat reactions rising over the yard. */}
+            <div className="emote-layer">
+              {floatingEmotes.map((fe) => (
+                <div key={fe.id} className="emote-float" style={{ left: `${fe.x}%` }}>
+                  {fe.gate ? (
+                    <span className="chat-gate" style={{ ['--gate-c' as string]: PATH_COLOR[fe.gate] }}>
+                      {fe.gate}
+                    </span>
+                  ) : (
+                    fe.token
+                  )}
+                </div>
+              ))}
+            </div>
+
             {phase === 'round-result' && (
               <div className="round-banner">
                 ROUND {round} CLEARED · {aliveCount} REMAIN
@@ -695,24 +750,41 @@ export function Game() {
             )}
           </div>
 
-          {/* Right: How It Works */}
-          <div className="panel how-panel">
-            <div className="panel-header how-header">HOW IT WORKS</div>
-            <ol className="how-list">
-              <li><span className="how-num">1</span><span>ANTE UP — POOL = ANTE × 10</span></li>
-              <li><span className="how-num">2</span><span>PICK YOUR CHARACTER</span></li>
-              <li><span className="how-num">3</span><span>TAP A GATE (5s, CAN SWITCH)</span></li>
-              <li><span className="how-num">4</span><span>SPOTLIGHT FREEZES · CAUGHT = OUT</span></li>
-              <li><span className="how-num">5</span><span>LAST STANDING TAKES IT ALL</span></li>
-              <li><span className="how-num">6</span><span>TIED LAST? SPLIT THE POOL</span></li>
-            </ol>
-            <button
-              type="button"
-              className="how-cta"
-              onClick={() => setShowRules(true)}
-            >
-              FULL RULES →
-            </button>
+          {/* Right: Quick Chat */}
+          <div className="panel chat-panel">
+            <div className="panel-header chat-header">QUICK CHAT</div>
+            <div className="chat-feed">
+              {chatLog.length === 0 ? (
+                <div className="chat-empty">Tap an emote to react 👇</div>
+              ) : (
+                chatLog.map((m) => (
+                  <div key={m.id} className="chat-msg">
+                    <span className="chat-from">{m.from}</span>
+                    {m.gate ? (
+                      <span className="chat-gate" style={{ ['--gate-c' as string]: PATH_COLOR[m.gate] }}>
+                        {m.gate}
+                      </span>
+                    ) : (
+                      <span className="chat-emoji">{m.token}</span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="chat-tray">
+              {EMOTES.map((e) => (
+                <button
+                  key={e.token}
+                  type="button"
+                  className={`chat-btn ${e.gate ? 'chat-btn-gate' : ''}`}
+                  style={e.gate ? { ['--gate-c' as string]: PATH_COLOR[e.gate] } : undefined}
+                  onClick={() => sendEmote(e)}
+                  aria-label={e.gate ? `Gate ${e.gate}` : e.token}
+                >
+                  {e.token}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

@@ -62,7 +62,7 @@
     padding: 0 8px;
     min-height: 0;        /* allow the column to shrink so children scroll, not overflow */
   }
-  .stage-grid .how-panel { display: none; }
+  .stage-grid .chat-panel { display: none; }
   /* Yard is the flex item that ABSORBS the squeeze: a low min-height lets it
      shrink on short viewports (e.g. mobile Safari with the URL bar showing) so
      the player strip and console never overflow into each other. */
@@ -228,36 +228,118 @@
   to { transform: scale(1); }
 }
 
-/* How it works */
-.how-list {
-  list-style: none;
-  margin: 0;
-  padding: 12px;
+/* ===== QUICK CHAT panel (right column) ===== */
+.chat-panel { min-height: 0; }
+/* Scrolling feed of recent reactions. */
+.chat-feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
-.how-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: var(--text);
-  line-height: 1.4;
-}
-.how-num {
-  flex-shrink: 0;
-  width: 24px; height: 24px;
-  display: grid; place-items: center;
-  background: var(--accent);
-  border: 2px solid var(--outline-color);
-  color: var(--accent-ink);
-  border-radius: 50%;
+.chat-empty {
+  margin: auto;
+  text-align: center;
   font-size: 12px;
+  font-weight: 700;
+  color: var(--text-dim);
+  padding: 12px;
+}
+.chat-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  animation: chatIn 0.25s ease;
+}
+@keyframes chatIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.chat-from {
+  color: var(--text-dim);
   font-weight: 800;
+  font-size: 11px;
+  max-width: 96px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-emoji { font-size: 20px; line-height: 1; }
+/* Gate call-out badge in the feed/float — letter on its gate color. */
+.chat-gate {
+  display: inline-grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 7px;
+  background: var(--gate-c);
+  border: 2px solid var(--outline-color);
+  color: #fff;
   font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+}
+
+/* Emote tray: grid of pre-programmed buttons at the bottom of the panel. */
+.chat-tray {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px;
+  border-top: 2px solid var(--panel-edge);
+  background: var(--panel-2);
+}
+.chat-btn {
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  border: 2px solid var(--outline-color);
+  border-radius: 10px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s ease;
+}
+.chat-btn:hover { background: var(--wall); }
+.chat-btn:active { transform: scale(0.9); }
+.chat-btn-gate {
+  background: var(--gate-c);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+}
+
+/* Floating reactions rising over the yard. */
+.emote-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  overflow: hidden;
+}
+.emote-float {
+  position: absolute;
+  bottom: 20%;
+  transform: translateX(-50%);
+  font-size: 34px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+  animation: emoteRise 2.2s ease-out forwards;
+}
+.emote-float .chat-gate { width: 34px; height: 34px; font-size: 20px; border-radius: 10px; }
+@keyframes emoteRise {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.6); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.1); }
+  30%  { transform: translateX(-50%) translateY(-8px) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-90px) scale(0.9); }
 }
 
 /* The Yard. background-size: 100% 100% stretches the painted bg to fully
