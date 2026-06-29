@@ -80,11 +80,8 @@ export function Game() {
   const [bustedFlash, setBustedFlash] = useState(false);
   /** Quick-chat: a feed of recent emotes + reactions that float over the yard. */
   const [chatLog, setChatLog] = useState<{ id: number; from: string; token: string; gate?: Path }[]>([]);
-  const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token: string; gate?: Path; x: number; y: number }[]>([]);
+  const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token: string; gate?: Path; x: number }[]>([]);
   const emoteIdRef = useRef(0);
-  /** Mobile: the quick-chat tray is collapsed behind a button (the chat panel is
-   *  hidden on phones, so this gives phone players a way to emote). */
-  const [mobileChatOpen, setMobileChatOpen] = useState(false);
   const wasAliveRef = useRef(true);
   const [errorMsg, setErrorMsg] = useState('');
   /** ms remaining in the pick phase. >0 only while phase === 'choosing'. */
@@ -186,28 +183,18 @@ export function Game() {
     setBet((b) => Math.max(MIN_BET, Math.min(MAX_BET, b + dir * BET_STEP)));
   };
 
-  /** Quick-chat: append an emote to the feed and pop it ABOVE the player. */
+  /** Quick-chat: append an emote to the feed and float it up over the yard. */
   const sendEmote = (e: Emote) => {
     sfx.click();
     const id = ++emoteIdRef.current;
     const me = user?.name ?? 'You';
     setChatLog((log) => [...log.slice(-30), { id, from: me, token: e.token, gate: e.gate }]);
-    // Emote pops above the player: use their lane x if they've picked a gate this
-    // round, otherwise their position in the bottom lineup.
-    let x: number;
-    let y: number;
-    if (playerThug.chosenPath && playerThug.alive && phase !== 'idle' && phase !== 'character-pick') {
-      x = LANE_X[playerThug.chosenPath];
-      y = 56; // above a thug standing up at the gate bar (bottom ~42%)
-    } else {
-      const pIdx = Math.max(0, thugs.findIndex((t) => t.isPlayer));
-      x = 15 + (pIdx * 70) / 9; // lineup start-x
-      y = 26; // above a thug standing in the bottom lineup
-    }
-    setFloatingEmotes((f) => [...f, { id, token: e.token, gate: e.gate, x, y }]);
+    // Floating reaction over the yard at a random-ish x (20%–80%).
+    const x = 20 + Math.random() * 60;
+    setFloatingEmotes((f) => [...f, { id, token: e.token, gate: e.gate, x }]);
     window.setTimeout(() => {
       setFloatingEmotes((f) => f.filter((fe) => fe.id !== id));
-    }, 1800);
+    }, 2200);
   };
 
   const startGame = () => {
@@ -660,13 +647,12 @@ export function Game() {
                   if (onPath && path) {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
-                    // More vertical gap between queued thugs so they aren't cramped.
-                    spreadY = -idx * 10;
+                    spreadY = -idx * 7;
                     // Lanes splay OUTWARD as they come toward the viewer (lower on
                     // screen). Each step down the queue, nudge x away from center so
                     // the thug stays ON its lane (e.g. D drifts right, A drifts left).
                     const laneX = LANE_X[path];
-                    spreadX = (laneX - 50) * 0.085 * idx;
+                    spreadX = (laneX - 50) * 0.06 * idx;
                   }
                   return (
                   <div
@@ -703,7 +689,7 @@ export function Game() {
             {/* Floating chat reactions rising over the yard. */}
             <div className="emote-layer">
               {floatingEmotes.map((fe) => (
-                <div key={fe.id} className="emote-float" style={{ left: `${fe.x}%`, bottom: `${fe.y}%` }}>
+                <div key={fe.id} className="emote-float" style={{ left: `${fe.x}%` }}>
                   {fe.gate ? (
                     <span className="chat-gate" style={{ ['--gate-c' as string]: PATH_COLOR[fe.gate] }}>
                       {fe.gate}
@@ -762,33 +748,6 @@ export function Game() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Mobile-only quick-emote bar (the right chat panel is hidden on
-              phones). A toggle reveals a horizontal scroll of the same emotes. */}
-          <div className={`mobile-emote ${mobileChatOpen ? 'open' : ''}`}>
-            <button
-              type="button"
-              className="mobile-emote-toggle"
-              onClick={() => setMobileChatOpen((o) => !o)}
-              aria-label="Emotes"
-            >
-              {mobileChatOpen ? '✕' : '😀'}
-            </button>
-            <div className="mobile-emote-tray">
-              {EMOTES.map((e) => (
-                <button
-                  key={e.token}
-                  type="button"
-                  className={`chat-btn ${e.gate ? 'chat-btn-gate' : ''}`}
-                  style={e.gate ? { ['--gate-c' as string]: PATH_COLOR[e.gate] } : undefined}
-                  onClick={() => sendEmote(e)}
-                  aria-label={e.gate ? `Gate ${e.gate}` : e.token}
-                >
-                  {e.token}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Right: Quick Chat */}
