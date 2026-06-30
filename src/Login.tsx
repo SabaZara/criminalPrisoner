@@ -43,8 +43,8 @@ export function Login() {
       <div className="login-bg" />
       <div className="login-card">
         <div className="login-logo">
-          <div className="logo-badge">ESC</div>
-          <h1>ESCAPE</h1>
+          <div className="logo-badge">LD</div>
+          <h1>LOCKDOWN</h1>
           <p className="tagline">10 INMATES · 4 GATES · 1 SPOTLIGHT</p>
         </div>
 
