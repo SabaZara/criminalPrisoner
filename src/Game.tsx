@@ -150,6 +150,28 @@ export function Game() {
 
   const playerThug = thugs.find((t) => t.isPlayer) ?? thugs[0];
   const aliveCount = thugs.filter((t) => t.alive).length;
+  const caughtCount = TOTAL_THUGS - aliveCount;
+
+  /** Piggy bank: each eliminated inmate's ante fattens the pot. Track how many
+   *  got caught THIS round (for the "+Nk" pulse) and trigger the fatten anim. */
+  const prevAliveRef = useRef(TOTAL_THUGS);
+  const [potDelta, setPotDelta] = useState(0);
+  const [potFatten, setPotFatten] = useState(false);
+  useEffect(() => {
+    if (phase === 'idle' || phase === 'character-pick') {
+      prevAliveRef.current = TOTAL_THUGS;
+      setPotDelta(0);
+      return;
+    }
+    const justCaught = prevAliveRef.current - aliveCount;
+    if (justCaught > 0) {
+      setPotDelta(justCaught * bet);
+      setPotFatten(true);
+      const t = window.setTimeout(() => setPotFatten(false), 700);
+      timeouts.current.push(t);
+    }
+    prevAliveRef.current = aliveCount;
+  }, [aliveCount, phase, bet]);
 
   /** Watch for player alive→dead transition during a round to fire the BUSTED flash. */
   useEffect(() => {
@@ -864,13 +886,28 @@ export function Game() {
           </button>
 
           <div className="console-cell console-pool">
-            <div className="console-label">PRIZE POOL</div>
-            <div className="win-value">{pool.toLocaleString()}</div>
-            {phase !== 'idle' && winners.length === 0 && (
-              <div className="win-sub">if solo win</div>
-            )}
-            {winners.length > 1 && (
+            <div className="console-label">THE POT</div>
+            <div className="pot-row">
+              <svg className={`pot-pig ${potFatten ? 'pot-pig-fatten' : ''}`} viewBox="0 0 48 48" width="34" height="34" aria-hidden="true">
+                <ellipse cx="24" cy="30" rx="17" ry="13" fill="var(--accent)" stroke="var(--outline-color)" strokeWidth="2.5" />
+                <circle cx="30" cy="27" r="2.3" fill="var(--outline-color)" />
+                <rect x="20" y="17" width="9" height="3" rx="1.5" fill="var(--outline-color)" />
+                <path d="M11 26 q-4 0 -4 4" fill="none" stroke="var(--outline-color)" strokeWidth="2.5" strokeLinecap="round" />
+                <rect x="16" y="40" width="4" height="5" rx="1.5" fill="var(--outline-color)" />
+                <rect x="28" y="40" width="4" height="5" rx="1.5" fill="var(--outline-color)" />
+                <path d="M36 22 q5 -1 6 4" fill="none" stroke="var(--outline-color)" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+              <div className="win-value">{pool.toLocaleString()}</div>
+              {potFatten && potDelta > 0 && (
+                <div className="pot-delta">+{potDelta.toLocaleString()}</div>
+              )}
+            </div>
+            {winners.length > 1 ? (
               <div className="win-sub">{sharePerWinner.toLocaleString()} ea ({winners.length}-way)</div>
+            ) : phase !== 'idle' ? (
+              <div className="win-sub">{caughtCount} caught · winner takes all</div>
+            ) : (
+              <div className="win-sub">grows as inmates are caught</div>
             )}
           </div>
         </div>
