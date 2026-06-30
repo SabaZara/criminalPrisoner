@@ -676,13 +676,20 @@ export function Game() {
                   if (onPath && path) {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
-                    // More vertical gap between queued thugs so they aren't cramped.
-                    spreadY = -idx * 13;
+                    const count = group.length;
+                    // Stack members DOWNWARD from the gate bar, but FIT the whole
+                    // queue inside a fixed band (~30% of yard height) so nobody is
+                    // pushed off-screen when many pick the same gate. The step is
+                    // the comfortable 13% for small groups and shrinks as the group
+                    // grows so even all 10 stay visible.
+                    const BAND = 30;
+                    const step = count > 1 ? Math.min(13, BAND / (count - 1)) : 0;
+                    spreadY = -idx * step;
                     // Lanes splay OUTWARD as they come toward the viewer (lower on
-                    // screen). Each step down the queue, nudge x away from center so
-                    // the thug stays ON its lane (e.g. D drifts right, A drifts left).
+                    // screen). Scale the x-nudge to the same step so members stay on
+                    // their lane regardless of how tightly they're packed.
                     const laneX = LANE_X[path];
-                    spreadX = (laneX - 50) * 0.11 * idx;
+                    spreadX = (laneX - 50) * (0.11 / 13) * step * idx;
                   }
                   return (
                   <div
