@@ -737,12 +737,6 @@ export function Game() {
               ))}
             </div>
 
-            {phase === 'round-result' && (
-              <div className="round-banner">
-                ROUND {round} CLEARED · {aliveCount} REMAIN
-              </div>
-            )}
-
             {bustedFlash && (
               <div className="busted-flash">
                 <div className="busted-text">BUSTED</div>
