@@ -73,16 +73,52 @@
     min-height: 150px;
     order: 1;
   }
-  /* Chat: a SHORT, FLEX-SHRINKABLE strip below the yard. flex-shrink lets
-     it give up height before anything overflows; min-height keeps the typed
-     row + a couple emotes visible. */
+  /* Chat: a scrollable strip below the yard. Tall enough that the feed has
+     real room AND the typed-input row + emote tray are reachable. The feed
+     scrolls; the emote tray becomes a single horizontal row instead of a
+     grid so vertical room goes to the feed. */
   .stage-grid .chat-panel {
     display: flex;
+    flex-direction: column;
     order: 2;
-    flex: 1 1 156px;
-    min-height: 120px;
-    max-height: 180px;
+    flex: 1 1 220px;
+    min-height: 180px;
+    max-height: 240px;
+    min-width: 0;
   }
+  /* Header is a tight row — header text takes only what it needs. */
+  .stage-grid .chat-panel .chat-header { padding: 8px 12px; font-size: 11px; }
+  /* Feed gets all remaining vertical room and scrolls within it. */
+  .stage-grid .chat-feed {
+    flex: 1 1 0;
+    min-height: 0;
+    padding: 8px;
+    gap: 6px;
+  }
+  /* Type-row stays compact. */
+  .stage-grid .chat-input-row { padding: 6px; gap: 6px; }
+  .stage-grid .chat-input { padding: 7px 9px; font-size: 13px; }
+  .stage-grid .chat-send { width: 36px; height: 36px; }
+  /* Emote tray: single horizontal row, scrollable left↔right if it overflows,
+     buttons fixed height so it can't eat the feed's room. */
+  .stage-grid .chat-tray {
+    grid-template-columns: none;
+    display: flex;
+    gap: 6px;
+    padding: 6px 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  .stage-grid .chat-tray::-webkit-scrollbar { display: none; }
+  .stage-grid .chat-btn {
+    aspect-ratio: auto;
+    flex: 0 0 auto;
+    width: 40px;
+    height: 36px;
+    font-size: 18px;
+  }
+  .stage-grid .chat-btn-gate { font-size: 14px; }
 
   /* Reclaim the header space for the yard: in the lobby it's empty (it only
      hosts the pick-timer during play), so let it collapse instead of reserving
@@ -101,9 +137,14 @@
   }
 }
 
-/* Phones specifically: cap the chat strip a touch shorter so the yard fills. */
+/* Phones specifically: tighten the chat strip a touch shorter so the yard fills,
+   but keep it tall enough for the feed to scroll properly. */
 @media (max-width: 600px) {
-  .stage-grid .chat-panel { max-height: 160px; }
+  .stage-grid .chat-panel {
+    flex-basis: 200px;
+    min-height: 170px;
+    max-height: 220px;
+  }
 }
 
 /* Safe-area inset for notched phones (iPhone) so the console clears the home bar. */
