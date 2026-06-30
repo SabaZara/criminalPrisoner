@@ -56,14 +56,10 @@ const EMOTES: Emote[] = [
   { token: '😎' },
   { token: '😱' },
   { token: '😭' },
-  { token: '🔥' },
+  { token: '🤬' },
   { token: '💀' },
   { token: '🤡' },
   { token: '🫡' },
-  { token: '🏃' },
-  { token: '👀' },
-  { token: '🎯' },
-  { token: '🤬' },
 ];
 
 export function Game() {

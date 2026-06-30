@@ -118,24 +118,34 @@
     padding: 6px;
     gap: 6px;
   }
-  /* Pick-timer floats over the yard top instead of taking its own row. */
+  /* Pick-timer floats over the TOP of the yard (left area only — not over the
+     console). Anchored with a small top offset so the panel isn't clipped by
+     the yard's rounded top edge, and kept clear of the right control column. */
   .game-stage .stage-header {
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 8px;
+    left: 6px;
+    right: 170px;          /* keep clear of the 158px console + gap */
     min-height: 0;
-    padding: 4px 8px 0;
+    padding: 0;
     background: none;
     pointer-events: none;
     z-index: 8;
   }
   .game-stage .stage-header .pick-timer {
     width: auto;
-    max-width: 360px;
+    max-width: 340px;
     margin: 0 auto;
     padding: 4px 12px 5px;
     pointer-events: auto;
-    background: rgba(15, 20, 36, 0.82);
+    background: rgba(15, 20, 36, 0.92);
   }
+  /* Compact the timer so the floating bar stays slim in landscape. */
+  .game-stage .pick-timer-clock-sec { font-size: 22px; }
+  .game-stage .pick-timer-clock-cs { font-size: 13px; }
+  .game-stage .pick-timer-footer { font-size: 8px; letter-spacing: 1px; }
+  .game-stage .pick-timer-meta-key { font-size: 7px; }
+  .game-stage .pick-timer-meta-val { font-size: 10px; }
 
   /* Yard fills the left; player + chat panels hidden. */
   .stage-grid {
