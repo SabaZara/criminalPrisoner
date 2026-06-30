@@ -58,11 +58,10 @@
   text-shadow: 0 2px 0 var(--outline-color);
 }
 .brand-badge {
-  min-width: 44px; height: 32px;
-  padding: 0 8px;
+  width: 34px; height: 32px;
   display: grid; place-items: center;
   font-family: var(--font-display);
-  font-size: 15px; font-weight: 800; letter-spacing: 1px; color: var(--accent-ink);
+  font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-ink);
   background: var(--accent);
   border: var(--outline) solid var(--outline-color);
   border-radius: 9px;
