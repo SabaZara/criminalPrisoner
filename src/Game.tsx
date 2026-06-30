@@ -80,7 +80,7 @@ export function Game() {
   const [bustedFlash, setBustedFlash] = useState(false);
   /** Quick-chat: a feed of recent emotes + reactions that float over the yard. */
   const [chatLog, setChatLog] = useState<{ id: number; from: string; token: string; gate?: Path }[]>([]);
-  const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token: string; gate?: Path; x: number }[]>([]);
+  const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token: string; gate?: Path; x: number; y: number }[]>([]);
   const emoteIdRef = useRef(0);
   const wasAliveRef = useRef(true);
   const [errorMsg, setErrorMsg] = useState('');
@@ -183,18 +183,29 @@ export function Game() {
     setBet((b) => Math.max(MIN_BET, Math.min(MAX_BET, b + dir * BET_STEP)));
   };
 
-  /** Quick-chat: append an emote to the feed and float it up over the yard. */
+  /** Quick-chat: append an emote to the feed and pop it directly above the
+   *  player's head. */
   const sendEmote = (e: Emote) => {
     sfx.click();
     const id = ++emoteIdRef.current;
     const me = user?.name ?? 'You';
     setChatLog((log) => [...log.slice(-30), { id, from: me, token: e.token, gate: e.gate }]);
-    // Floating reaction over the yard at a random-ish x (20%–80%).
-    const x = 20 + Math.random() * 60;
-    setFloatingEmotes((f) => [...f, { id, token: e.token, gate: e.gate, x }]);
+    // Position the emote over the player's head: their lane x if they've walked
+    // up to a gate this round, otherwise their spot in the bottom lineup.
+    let x: number;
+    let y: number;
+    if (playerThug.chosenPath && playerThug.alive && phase !== 'idle' && phase !== 'character-pick') {
+      x = LANE_X[playerThug.chosenPath];
+      y = 66; // fairly above a thug standing up at the gate (bottom ~42%)
+    } else {
+      const pIdx = Math.max(0, thugs.findIndex((t) => t.isPlayer));
+      x = 11 + (pIdx * 78) / 9; // lineup start-x (matches thug lineup spread)
+      y = 34; // fairly above a thug in the bottom lineup (bottom ~6%)
+    }
+    setFloatingEmotes((f) => [...f, { id, token: e.token, gate: e.gate, x, y }]);
     window.setTimeout(() => {
       setFloatingEmotes((f) => f.filter((fe) => fe.id !== id));
-    }, 2200);
+    }, 1900);
   };
 
   const startGame = () => {
@@ -637,8 +648,8 @@ export function Game() {
                   const path = t.chosenPath;
                   const isWinner = winners.some((w) => w.id === t.id);
                   const onPath = reveal && path && t.alive;
-                  // Starting x: spread 10 thugs evenly across 15%–85%
-                  const startX = 15 + (i * 70) / 9;
+                  // Starting x: spread 10 thugs across 11%–89% so they aren't cramped.
+                  const startX = 11 + (i * 78) / 9;
                   // Queue offset within the gate group. The bar (start line) is the
                   // UPPER limit — the first member sits ON the bar and extra members
                   // stack DOWNWARD (toward the viewer), never crossing above it.
@@ -647,12 +658,13 @@ export function Game() {
                   if (onPath && path) {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
-                    spreadY = -idx * 7;
+                    // More vertical gap between queued thugs so they aren't cramped.
+                    spreadY = -idx * 10;
                     // Lanes splay OUTWARD as they come toward the viewer (lower on
                     // screen). Each step down the queue, nudge x away from center so
                     // the thug stays ON its lane (e.g. D drifts right, A drifts left).
                     const laneX = LANE_X[path];
-                    spreadX = (laneX - 50) * 0.06 * idx;
+                    spreadX = (laneX - 50) * 0.085 * idx;
                   }
                   return (
                   <div
@@ -689,7 +701,7 @@ export function Game() {
             {/* Floating chat reactions rising over the yard. */}
             <div className="emote-layer">
               {floatingEmotes.map((fe) => (
-                <div key={fe.id} className="emote-float" style={{ left: `${fe.x}%` }}>
+                <div key={fe.id} className="emote-float" style={{ left: `${fe.x}%`, bottom: `${fe.y}%` }}>
                   {fe.gate ? (
                     <span className="chat-gate" style={{ ['--gate-c' as string]: PATH_COLOR[fe.gate] }}>
                       {fe.gate}

@@ -325,21 +325,24 @@
   z-index: 12;
   overflow: hidden;
 }
+/* Emote pops up just above the player's head (left/bottom set inline), does a
+   small bouncy jump, then fades — it stays over the player, not across the
+   screen. */
 .emote-float {
   position: absolute;
-  bottom: 20%;
   transform: translateX(-50%);
-  font-size: 34px;
+  font-size: 30px;
   line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
-  animation: emoteRise 2.2s ease-out forwards;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
+  animation: emotePop 1.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
-.emote-float .chat-gate { width: 34px; height: 34px; font-size: 20px; border-radius: 10px; }
-@keyframes emoteRise {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.6); }
-  15%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.1); }
-  30%  { transform: translateX(-50%) translateY(-8px) scale(1); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-90px) scale(0.9); }
+.emote-float .chat-gate { width: 30px; height: 30px; font-size: 18px; border-radius: 9px; }
+@keyframes emotePop {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.4); }
+  20%  { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1.15); }
+  40%  { transform: translateX(-50%) translateY(-2px) scale(1); }
+  78%  { opacity: 1; transform: translateX(-50%) translateY(-10px) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.95); }
 }
 
 /* The Yard. background-size: 100% 100% stretches the painted bg to fully
