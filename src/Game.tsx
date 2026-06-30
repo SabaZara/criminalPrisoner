@@ -78,9 +78,11 @@ export function Game() {
   const [showHistory, setShowHistory] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [bustedFlash, setBustedFlash] = useState(false);
-  /** Quick-chat: a feed of recent emotes + reactions that float over the yard. */
-  const [chatLog, setChatLog] = useState<{ id: number; from: string; token: string; gate?: Path }[]>([]);
-  const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token: string; gate?: Path; x: number; y: number }[]>([]);
+  /** Quick-chat: a feed of recent emotes/messages + reactions that float over
+   *  the yard. A message has either `token`/`gate` (emote) or `text` (typed). */
+  const [chatLog, setChatLog] = useState<{ id: number; from: string; token?: string; gate?: Path; text?: string }[]>([]);
+  const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token?: string; gate?: Path; text?: string; x: number; y: number }[]>([]);
+  const [chatInput, setChatInput] = useState('');
   const emoteIdRef = useRef(0);
   const wasAliveRef = useRef(true);
   const [errorMsg, setErrorMsg] = useState('');
@@ -183,29 +185,43 @@ export function Game() {
     setBet((b) => Math.max(MIN_BET, Math.min(MAX_BET, b + dir * BET_STEP)));
   };
 
-  /** Quick-chat: append an emote to the feed and pop it directly above the
-   *  player's head. */
+  /** Where to pop a chat bubble over the player's head: their lane x if they've
+   *  walked to a gate this round, otherwise their spot in the bottom lineup. */
+  const playerHeadAnchor = (): { x: number; y: number } => {
+    if (playerThug.chosenPath && playerThug.alive && phase !== 'idle' && phase !== 'character-pick') {
+      return { x: LANE_X[playerThug.chosenPath], y: 66 };
+    }
+    const pIdx = Math.max(0, thugs.findIndex((t) => t.isPlayer));
+    return { x: 8 + (pIdx * 84) / 9, y: 34 };
+  };
+
+  /** Quick-chat: append an emote to the feed and pop it above the player's head. */
   const sendEmote = (e: Emote) => {
     sfx.click();
     const id = ++emoteIdRef.current;
     const me = user?.name ?? 'You';
     setChatLog((log) => [...log.slice(-30), { id, from: me, token: e.token, gate: e.gate }]);
-    // Position the emote over the player's head: their lane x if they've walked
-    // up to a gate this round, otherwise their spot in the bottom lineup.
-    let x: number;
-    let y: number;
-    if (playerThug.chosenPath && playerThug.alive && phase !== 'idle' && phase !== 'character-pick') {
-      x = LANE_X[playerThug.chosenPath];
-      y = 66; // fairly above a thug standing up at the gate (bottom ~42%)
-    } else {
-      const pIdx = Math.max(0, thugs.findIndex((t) => t.isPlayer));
-      x = 11 + (pIdx * 78) / 9; // lineup start-x (matches thug lineup spread)
-      y = 34; // fairly above a thug in the bottom lineup (bottom ~6%)
-    }
+    const { x, y } = playerHeadAnchor();
     setFloatingEmotes((f) => [...f, { id, token: e.token, gate: e.gate, x, y }]);
     window.setTimeout(() => {
       setFloatingEmotes((f) => f.filter((fe) => fe.id !== id));
     }, 1900);
+  };
+
+  /** Quick-chat: send a typed message — same feed + a speech bubble above head. */
+  const sendText = () => {
+    const text = chatInput.trim().slice(0, 80);
+    if (!text) return;
+    sfx.click();
+    const id = ++emoteIdRef.current;
+    const me = user?.name ?? 'You';
+    setChatLog((log) => [...log.slice(-30), { id, from: me, text }]);
+    setChatInput('');
+    const { x, y } = playerHeadAnchor();
+    setFloatingEmotes((f) => [...f, { id, text, x, y }]);
+    window.setTimeout(() => {
+      setFloatingEmotes((f) => f.filter((fe) => fe.id !== id));
+    }, 2600);
   };
 
   const startGame = () => {
@@ -648,8 +664,8 @@ export function Game() {
                   const path = t.chosenPath;
                   const isWinner = winners.some((w) => w.id === t.id);
                   const onPath = reveal && path && t.alive;
-                  // Starting x: spread 10 thugs across 11%–89% so they aren't cramped.
-                  const startX = 11 + (i * 78) / 9;
+                  // Starting x: spread 10 thugs across 8%–92% so they aren't cramped.
+                  const startX = 8 + (i * 84) / 9;
                   // Queue offset within the gate group. The bar (start line) is the
                   // UPPER limit — the first member sits ON the bar and extra members
                   // stack DOWNWARD (toward the viewer), never crossing above it.
@@ -659,12 +675,12 @@ export function Game() {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
                     // More vertical gap between queued thugs so they aren't cramped.
-                    spreadY = -idx * 10;
+                    spreadY = -idx * 13;
                     // Lanes splay OUTWARD as they come toward the viewer (lower on
                     // screen). Each step down the queue, nudge x away from center so
                     // the thug stays ON its lane (e.g. D drifts right, A drifts left).
                     const laneX = LANE_X[path];
-                    spreadX = (laneX - 50) * 0.085 * idx;
+                    spreadX = (laneX - 50) * 0.11 * idx;
                   }
                   return (
                   <div
@@ -701,8 +717,14 @@ export function Game() {
             {/* Floating chat reactions rising over the yard. */}
             <div className="emote-layer">
               {floatingEmotes.map((fe) => (
-                <div key={fe.id} className="emote-float" style={{ left: `${fe.x}%`, bottom: `${fe.y}%` }}>
-                  {fe.gate ? (
+                <div
+                  key={fe.id}
+                  className={`emote-float ${fe.text ? 'emote-bubble' : ''}`}
+                  style={{ left: `${fe.x}%`, bottom: `${fe.y}%` }}
+                >
+                  {fe.text ? (
+                    fe.text
+                  ) : fe.gate ? (
                     <span className="chat-gate" style={{ ['--gate-c' as string]: PATH_COLOR[fe.gate] }}>
                       {fe.gate}
                     </span>
@@ -767,12 +789,14 @@ export function Game() {
             <div className="panel-header chat-header">QUICK CHAT</div>
             <div className="chat-feed">
               {chatLog.length === 0 ? (
-                <div className="chat-empty">Tap an emote to react 👇</div>
+                <div className="chat-empty">Say something or tap an emote 👇</div>
               ) : (
                 chatLog.map((m) => (
                   <div key={m.id} className="chat-msg">
                     <span className="chat-from">{m.from}</span>
-                    {m.gate ? (
+                    {m.text ? (
+                      <span className="chat-text">{m.text}</span>
+                    ) : m.gate ? (
                       <span className="chat-gate" style={{ ['--gate-c' as string]: PATH_COLOR[m.gate] }}>
                         {m.gate}
                       </span>
@@ -783,6 +807,22 @@ export function Game() {
                 ))
               )}
             </div>
+            <form
+              className="chat-input-row"
+              onSubmit={(e) => { e.preventDefault(); sendText(); }}
+            >
+              <input
+                className="chat-input"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Type a message…"
+                maxLength={80}
+                aria-label="Chat message"
+              />
+              <button type="submit" className="chat-send" aria-label="Send" disabled={!chatInput.trim()}>
+                ➤
+              </button>
+            </form>
             <div className="chat-tray">
               {EMOTES.map((e) => (
                 <button

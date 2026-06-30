@@ -109,6 +109,64 @@
   }
 }
 
+/* ===== LANDSCAPE PHONE ===== short + wide: yard on the LEFT, compact control
+   column on the RIGHT so the PLAY button is always visible. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .game-stage {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 6px;
+    gap: 6px;
+  }
+  /* Pick-timer floats over the yard top instead of taking its own row. */
+  .game-stage .stage-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    min-height: 0;
+    padding: 4px 8px 0;
+    background: none;
+    pointer-events: none;
+    z-index: 8;
+  }
+  .game-stage .stage-header .pick-timer {
+    width: auto;
+    max-width: 360px;
+    margin: 0 auto;
+    padding: 4px 12px 5px;
+    pointer-events: auto;
+    background: rgba(15, 20, 36, 0.82);
+  }
+
+  /* Yard fills the left; player + chat panels hidden. */
+  .stage-grid {
+    flex: 1 1 auto;
+    display: flex;
+    grid-template-columns: none;
+    padding: 0;
+    min-width: 0;
+    position: relative;
+  }
+  .stage-grid .players-panel,
+  .stage-grid .chat-panel { display: none; }
+  .stage-grid .yard { flex: 1; min-height: 0; height: 100%; }
+
+  /* Compact control column on the right. */
+  .game-stage .console-bar {
+    flex: 0 0 158px;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding: 10px;
+    grid-template-columns: none;
+    grid-template-areas: none;
+  }
+  .console-bet, .console-pool { align-items: center; text-align: center; }
+  .btn-play-console { min-width: 0; width: 100%; padding: 14px 10px; font-size: 16px; letter-spacing: 2px; }
+  .bet-value, .win-value { font-size: 18px; }
+}
+
 .panel {
   background: var(--panel);
   border: var(--outline) solid var(--outline-color);
@@ -269,6 +327,54 @@
   white-space: nowrap;
 }
 .chat-emoji { font-size: 20px; line-height: 1; }
+.chat-text {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 12px;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Type-a-message row, between the feed and the emote tray. */
+.chat-input-row {
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-top: 2px solid var(--panel-edge);
+}
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--ink);
+  border: 2px solid var(--outline-color);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  outline: none;
+}
+.chat-input::placeholder { color: var(--text-dim); }
+.chat-input:focus { border-color: var(--accent); }
+.chat-send {
+  flex-shrink: 0;
+  width: 38px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 2px solid var(--outline-color);
+  border-radius: 10px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.08s ease, filter 0.12s ease;
+}
+.chat-send:hover:not(:disabled) { filter: brightness(1.05); }
+.chat-send:active:not(:disabled) { transform: translateY(2px); }
+.chat-send:disabled { opacity: 0.4; cursor: default; }
+
 /* Gate call-out badge in the feed/float — letter on its gate color. */
 .chat-gate {
   display: inline-grid;
@@ -337,6 +443,35 @@
   animation: emotePop 1.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 .emote-float .chat-gate { width: 30px; height: 30px; font-size: 18px; border-radius: 9px; }
+
+/* Typed messages float as a speech bubble (instead of a big emoji). */
+.emote-float.emote-bubble {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  max-width: 180px;
+  padding: 6px 10px;
+  background: #fff;
+  color: #15203a;
+  border: 2px solid var(--outline-color);
+  border-radius: 12px;
+  white-space: normal;
+  word-break: break-word;
+  text-align: center;
+  box-shadow: 0 3px 0 var(--outline-color);
+  animation-duration: 2.6s;
+}
+/* little tail under the bubble */
+.emote-float.emote-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: -7px;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 7px solid var(--outline-color);
+}
+
 @keyframes emotePop {
   0%   { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.4); }
   20%  { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1.15); }
@@ -575,7 +710,7 @@
      nudges them along the lane's perspective splay so they stay on their path. */
   --thug-spread-y: 0%;
   --thug-spread-x: 0%;
-  height: 26%;
+  height: 23%;   /* slightly smaller so the lineup has visible gaps */
   display: flex;
   align-items: flex-end;
   justify-content: center;
