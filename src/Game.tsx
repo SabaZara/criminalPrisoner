@@ -80,6 +80,12 @@ export function Game() {
   const [floatingEmotes, setFloatingEmotes] = useState<{ id: number; token?: string; gate?: Path; text?: string; x: number; y: number }[]>([]);
   const [chatInput, setChatInput] = useState('');
   const emoteIdRef = useRef(0);
+  /** Auto-scroll the chat feed to the newest message. */
+  const chatFeedRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = chatFeedRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [chatLog]);
   const wasAliveRef = useRef(true);
   const [errorMsg, setErrorMsg] = useState('');
   /** ms remaining in the pick phase. >0 only while phase === 'choosing'. */
@@ -783,7 +789,7 @@ export function Game() {
           {/* Right: Quick Chat */}
           <div className="panel chat-panel">
             <div className="panel-header chat-header">QUICK CHAT</div>
-            <div className="chat-feed">
+            <div className="chat-feed" ref={chatFeedRef}>
               {chatLog.length === 0 ? (
                 <div className="chat-empty">Say something or tap an emote 👇</div>
               ) : (
