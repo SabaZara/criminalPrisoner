@@ -62,22 +62,26 @@
     padding: 0 8px;
     min-height: 0;        /* allow the column to shrink so children scroll, not overflow */
   }
-  .stage-grid .chat-panel { display: none; }
+  /* On phones, hide the players list — chat panel takes its slot for the
+     social side. Players are still listed via the avatar lineup in the yard. */
+  .stage-grid .players-panel { display: none; }
   /* Yard is the flex item that ABSORBS the squeeze: a low min-height lets it
      shrink on short viewports (e.g. mobile Safari with the URL bar showing) so
-     the player strip and console never overflow into each other. */
+     the chat strip and console never overflow into each other. */
   .stage-grid .yard {
     flex: 1 1 auto;
     min-height: 150px;
     order: 1;
   }
-  /* Player list: a SHORT, FLEX-SHRINKABLE strip below the yard. flex-shrink lets
-     it give up height before anything overflows; min-height keeps ~1.5 rows. */
-  .stage-grid .players-panel {
+  /* Chat: a SHORT, FLEX-SHRINKABLE strip below the yard. flex-shrink lets
+     it give up height before anything overflows; min-height keeps the typed
+     row + a couple emotes visible. */
+  .stage-grid .chat-panel {
+    display: flex;
     order: 2;
-    flex: 1 1 132px;
-    min-height: 96px;
-    max-height: 150px;
+    flex: 1 1 156px;
+    min-height: 120px;
+    max-height: 180px;
   }
 
   /* Reclaim the header space for the yard: in the lobby it's empty (it only
@@ -97,9 +101,9 @@
   }
 }
 
-/* Phones specifically: cap the player strip a touch shorter so the yard fills. */
+/* Phones specifically: cap the chat strip a touch shorter so the yard fills. */
 @media (max-width: 600px) {
-  .stage-grid .players-panel { max-height: 132px; }
+  .stage-grid .chat-panel { max-height: 160px; }
 }
 
 /* Safe-area inset for notched phones (iPhone) so the console clears the home bar. */
