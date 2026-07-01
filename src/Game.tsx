@@ -726,10 +726,11 @@ export function Game() {
                   >
                     <img className="thug-body" src={t.avatar} alt={t.name} />
                     {/* Player always tagged so you can find yourself; bots get a
-                        name tag only once they've walked to a gate AND only the front
-                        one of a stack, so tags don't pile up / overlap. */}
-                    {reveal && t.alive && (t.isPlayer || (onPath && groupIdx === 0)) && (
-                      <div className={`thug-name-tag ${t.isPlayer ? 'thug-name-you' : ''}`}>
+                        name tag once they've walked to a gate. On DESKTOP every thug
+                        shows their name; on mobile only the front of each stack does
+                        (the .thug-name-stacked class is hidden there via CSS). */}
+                    {reveal && t.alive && (t.isPlayer || onPath) && (
+                      <div className={`thug-name-tag ${t.isPlayer ? 'thug-name-you' : ''} ${!t.isPlayer && groupIdx > 0 ? 'thug-name-stacked' : ''}`}>
                         {t.isPlayer ? 'YOU' : t.name}
                       </div>
                     )}

@@ -803,7 +803,7 @@
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  max-width: 70px;
+  max-width: 72px;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 9px;
@@ -815,6 +815,11 @@
   padding: 1px 5px;
   border-radius: 5px;
   z-index: 5;
+}
+/* On phones the yard is a narrow strip — only show the FRONT thug of each stack
+   so tags don't pile up or overflow the edges. Desktop shows everyone. */
+@media (max-width: 900px) {
+  .thug-name-tag.thug-name-stacked { display: none; }
 }
 /* The player's tag stands out so you can always find yourself in the crowd. */
 .thug-name-tag.thug-name-you {
