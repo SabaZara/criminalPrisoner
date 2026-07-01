@@ -688,6 +688,9 @@ export function Game() {
                   // stack DOWNWARD (toward the viewer), never crossing above it.
                   let spreadY = 0;
                   let spreadX = 0;
+                  // Index within this thug's gate group (0 = front). Used to show the
+                  // name tag only on the front member so stacked tags don't overlap.
+                  const groupIdx = onPath && path ? (groups[path]?.indexOf(t.id) ?? 0) : 0;
                   if (onPath && path) {
                     const group = groups[path];
                     const idx = group.indexOf(t.id);
@@ -722,7 +725,10 @@ export function Game() {
                     }}
                   >
                     <img className="thug-body" src={t.avatar} alt={t.name} />
-                    {reveal && t.alive && (
+                    {/* Player always tagged so you can find yourself; bots get a
+                        name tag only once they've walked to a gate AND only the front
+                        one of a stack, so tags don't pile up / overlap. */}
+                    {reveal && t.alive && (t.isPlayer || (onPath && groupIdx === 0)) && (
                       <div className={`thug-name-tag ${t.isPlayer ? 'thug-name-you' : ''}`}>
                         {t.isPlayer ? 'YOU' : t.name}
                       </div>

@@ -799,20 +799,20 @@
 /* Name tag floating above each thug's head. */
 .thug-name-tag {
   position: absolute;
-  top: -14px;
+  top: -13px;
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  max-width: 84px;
+  max-width: 70px;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 9px;
   font-weight: 800;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   color: #fff;
-  background: rgba(6, 10, 22, 0.82);
+  background: rgba(6, 10, 22, 0.85);
   border: 1.5px solid rgba(0,0,0,0.6);
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 5px;
   z-index: 5;
 }
@@ -1171,6 +1171,19 @@
   .console-label { font-size: 9px; }
   .bet-value, .win-value { font-size: 18px; }
   .bet-btn { width: 36px; height: 36px; }
+  /* Smaller ante blocks on phones — a tidy 2x2 grid of equal boxes. */
+  .bet-blocks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    max-width: 116px;
+  }
+  .bet-block {
+    min-width: 0;
+    padding: 5px 4px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
 }
 @media (max-width: 480px) {
   .pick-timer { width: auto; max-width: 100%; }
