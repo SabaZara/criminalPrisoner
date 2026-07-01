@@ -781,6 +781,15 @@
     drop-shadow(0 0 8px #d4af37)
     drop-shadow(0 4px 6px rgba(0,0,0,0.85));
 }
+/* Before the game starts (lobby/idle), don't glow the player or highlight any
+   gate as "chosen" — everyone looks neutral until a round begins. */
+.game-shell.is-idle .thug-player .thug-body {
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.85));
+}
+.game-shell.is-idle .door-chosen .door-img,
+.game-shell.is-idle .door-active .door-img {
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.7));
+}
 @media (max-width: 1100px) {
   .thug { height: 22%; }
 }

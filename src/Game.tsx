@@ -22,9 +22,8 @@ import { SPRITES } from './assets/sprites';
 import { sfx } from './sound';
 import './Game.css';
 
-const BET_STEP = 1000;
-const MIN_BET = 1000;
-const MAX_BET = 1000000;
+/** Fixed ante options — the +/− buttons cycle through these (no free typing). */
+const BET_OPTIONS = [1000, 2000, 5000, 10000];
 
 /** Round pacing (ms). Total target ≈ 5s per round so thugs visibly walk before the cop strikes. */
 const PICK_TIMER_MS = 5000;      // player has 5s to pick (and can change their mind)
@@ -184,7 +183,12 @@ export function Game() {
 
   const adjustBet = (dir: 1 | -1) => {
     if (phase !== 'idle') return;
-    setBet((b) => Math.max(MIN_BET, Math.min(MAX_BET, b + dir * BET_STEP)));
+    setBet((b) => {
+      const i = BET_OPTIONS.indexOf(b);
+      const cur = i === -1 ? 0 : i;
+      const next = Math.max(0, Math.min(BET_OPTIONS.length - 1, cur + dir));
+      return BET_OPTIONS[next];
+    });
   };
 
   /** Where to pop a chat bubble over the player's head: their lane x if they've
@@ -515,7 +519,7 @@ export function Game() {
   const sharePerWinner = winners.length > 0 ? Math.floor(pool / winners.length) : 0;
 
   return (
-    <div className="game-shell">
+    <div className={`game-shell ${phase === 'idle' ? 'is-idle' : ''}`}>
       <TopBar
         onShowHistory={() => setShowHistory(true)}
         onShowRules={() => setShowRules(true)}
@@ -849,9 +853,9 @@ export function Game() {
           <div className="console-cell console-bet">
             <div className="console-label">YOUR ANTE</div>
             <div className="bet-controls">
-              <button className="bet-btn" onClick={() => adjustBet(-1)} disabled={phase !== 'idle'}>−</button>
+              <button className="bet-btn" onClick={() => adjustBet(-1)} disabled={phase !== 'idle' || bet <= BET_OPTIONS[0]}>−</button>
               <div className="bet-value">{bet.toLocaleString()}</div>
-              <button className="bet-btn" onClick={() => adjustBet(1)} disabled={phase !== 'idle'}>+</button>
+              <button className="bet-btn" onClick={() => adjustBet(1)} disabled={phase !== 'idle' || bet >= BET_OPTIONS[BET_OPTIONS.length - 1]}>+</button>
             </div>
           </div>
 
