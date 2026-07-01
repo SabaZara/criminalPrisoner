@@ -27,10 +27,12 @@
 .menu-btn {
   width: 42px;
   height: 42px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 4px;
-  padding: 11px;
+  padding: 0;
 }
 .menu-btn span {
   display: block;
@@ -58,10 +60,11 @@
   text-shadow: 0 2px 0 var(--outline-color);
 }
 .brand-badge {
-  width: 32px; height: 32px;
+  min-width: 46px; height: 32px;
+  padding: 0 9px;
   display: grid; place-items: center;
   font-family: var(--font-display);
-  font-size: 14px; font-weight: 800; color: var(--accent-ink);
+  font-size: 15px; font-weight: 800; letter-spacing: 1px; color: var(--accent-ink);
   background: var(--accent);
   border: var(--outline) solid var(--outline-color);
   border-radius: 9px;
@@ -262,8 +265,12 @@
   font-size: 17px;
   font-weight: 900;
   font-family: var(--font-display);
+  display: grid;
+  place-items: center;
+  padding: 0;
 }
 .rules-btn:hover { background: var(--wall); color: #fff; }
+.rules-btn svg { display: block; }
 
 /* Balance ticker glow when changing */
 .balance-ticking { transition: box-shadow 0.2s ease, border-color 0.2s ease; }
@@ -290,6 +297,7 @@
 
   .menu-btn { width: 38px; height: 38px; padding: 10px; }
   .rules-btn { width: 34px; height: 34px; font-size: 15px; }
+  .rules-btn svg { width: 18px; height: 18px; }
   .topbar-left { gap: 6px; }
 
   .balance-block { gap: 8px; }

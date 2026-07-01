@@ -95,14 +95,29 @@ export function TopBar({
             aria-label={muted ? 'Unmute' : 'Mute'}
             title={muted ? 'Unmute' : 'Mute'}
           >
-            {muted ? '🔇' : '🔊'}
+            {/* Custom speaker icon — waves when on, an X when muted. */}
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                d="M4 9.5h3l4-3.5v12l-4-3.5H4z"
+                fill="currentColor" stroke="currentColor" strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              {muted ? (
+                <path d="M15.5 9.5l4 5m0-5l-4 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+              ) : (
+                <>
+                  <path d="M15 9.5a4 4 0 0 1 0 5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                  <path d="M17.5 7.5a7 7 0 0 1 0 9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                </>
+              )}
+            </svg>
           </button>
         </div>
 
         <div className="topbar-center">
           <div className="brand">
-            <div className="brand-badge">LD</div>
-            <span>LOCKDOWN</span>
+            <div className="brand-badge">ESC</div>
+            <span>ESCAPE</span>
           </div>
         </div>
 
