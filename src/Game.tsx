@@ -73,6 +73,11 @@ export function Game() {
   const [showHistory, setShowHistory] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [bustedFlash, setBustedFlash] = useState(false);
+  /** When the player is caught but the game continues, we pause and ask: play
+   *  again, or spectate the rest? Only after choosing "spectate" do bot rounds
+   *  auto-run. Reset each new game. */
+  const [bustedChoice, setBustedChoice] = useState(false);
+  const [spectating, setSpectating] = useState(false);
   /** Quick-chat: a feed of recent emotes/messages + reactions that float over
    *  the yard. A message has either `token`/`gate` (emote) or `text` (typed). */
   const [chatLog, setChatLog] = useState<{ id: number; from: string; token?: string; gate?: Path; text?: string }[]>([]);
@@ -157,11 +162,17 @@ export function Game() {
       setBustedFlash(true);
       const t = window.setTimeout(() => setBustedFlash(false), 1500);
       timeouts.current.push(t);
+      // If the game isn't over (bots remain), pause and ask: play again or spectate.
+      if (phase !== 'final-result') {
+        setBustedChoice(true);
+      }
     }
     wasAliveRef.current = playerThug.alive;
-    // Reset the ref when starting a new game
+    // Reset the refs/flags when starting a new game
     if (phase === 'idle' || phase === 'character-pick') {
       wasAliveRef.current = true;
+      setBustedChoice(false);
+      setSpectating(false);
     }
   }, [playerThug.alive, phase]);
   const pool = useMemo(() => calculatePool(bet), [bet]);
@@ -181,15 +192,6 @@ export function Game() {
     D: -41,
   };
 
-  const adjustBet = (dir: 1 | -1) => {
-    if (phase !== 'idle') return;
-    setBet((b) => {
-      const i = BET_OPTIONS.indexOf(b);
-      const cur = i === -1 ? 0 : i;
-      const next = Math.max(0, Math.min(BET_OPTIONS.length - 1, cur + dir));
-      return BET_OPTIONS[next];
-    });
-  };
 
   /** Where to pop a chat bubble over the player's head: their lane x if they've
    *  walked to a gate this round, otherwise their spot in the bottom lineup. */
@@ -378,15 +380,16 @@ export function Game() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, playerThug.alive, round]);
 
-  /** When player is eliminated but the game continues, auto-run rounds in spectate mode. */
+  /** When player is eliminated AND has chosen to spectate, auto-run bot rounds. */
   useEffect(() => {
     if (phase !== 'choosing') return;
     if (playerThug.alive) return;
+    if (!spectating) return; // wait for the play-again/spectate choice
     const t = window.setTimeout(lockSpotlightAndRunRound, 1500);
     timeouts.current.push(t);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, playerThug.alive, round]);
+  }, [phase, playerThug.alive, round, spectating]);
 
   /**
    * Personality-driven bot decisions during the pick phase.
@@ -711,8 +714,11 @@ export function Game() {
                     }}
                   >
                     <img className="thug-body" src={t.avatar} alt={t.name} />
-                    {t.isPlayer && <div className="you-tag">YOU</div>}
-                    {reveal && path && t.alive && <div className="thug-path-tag">{path}</div>}
+                    {reveal && t.alive && (
+                      <div className={`thug-name-tag ${t.isPlayer ? 'thug-name-you' : ''}`}>
+                        {t.isPlayer ? 'YOU' : t.name}
+                      </div>
+                    )}
                   </div>
                 );
                 });
@@ -723,8 +729,30 @@ export function Game() {
               <StartCountdown />
             )}
 
-            {phase === 'choosing' && !playerThug.alive && (
+            {phase === 'choosing' && !playerThug.alive && spectating && (
               <div className="prompt-banner spectate">SPECTATING · BOTS RUN THE REMAINING ROUNDS</div>
+            )}
+
+            {/* You got caught but the game continues — pick play again or spectate. */}
+            {bustedChoice && (
+              <div className="busted-choice">
+                <div className="busted-choice-eyebrow">CAUGHT</div>
+                <div className="busted-choice-title">You&apos;re out this game</div>
+                <div className="busted-choice-actions">
+                  <button
+                    className="btn-play btn-play-result"
+                    onClick={() => { setBustedChoice(false); playAgain(); }}
+                  >
+                    PLAY AGAIN
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => { setBustedChoice(false); setSpectating(true); }}
+                  >
+                    Spectate
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Floating chat reactions rising over the yard. */}
@@ -782,9 +810,6 @@ export function Game() {
                 <div className="result-actions">
                   <button className="btn-play btn-play-result" onClick={playAgain}>
                     PLAY AGAIN
-                  </button>
-                  <button className="btn-secondary" onClick={reset}>
-                    Change Character
                   </button>
                 </div>
               </div>
@@ -852,10 +877,18 @@ export function Game() {
         <div className="console-bar">
           <div className="console-cell console-bet">
             <div className="console-label">YOUR ANTE</div>
-            <div className="bet-controls">
-              <button className="bet-btn" onClick={() => adjustBet(-1)} disabled={phase !== 'idle' || bet <= BET_OPTIONS[0]}>−</button>
-              <div className="bet-value">{bet.toLocaleString()}</div>
-              <button className="bet-btn" onClick={() => adjustBet(1)} disabled={phase !== 'idle' || bet >= BET_OPTIONS[BET_OPTIONS.length - 1]}>+</button>
+            <div className="bet-blocks">
+              {BET_OPTIONS.map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  className={`bet-block ${bet === amt ? 'active' : ''}`}
+                  onClick={() => phase === 'idle' && setBet(amt)}
+                  disabled={phase !== 'idle'}
+                >
+                  {amt >= 1000 ? `${amt / 1000}k` : amt}
+                </button>
+              ))}
             </div>
           </div>
 
