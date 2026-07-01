@@ -162,10 +162,9 @@ export function Game() {
       setBustedFlash(true);
       const t = window.setTimeout(() => setBustedFlash(false), 1500);
       timeouts.current.push(t);
-      // If the game isn't over (bots remain), pause and ask: play again or spectate.
-      if (phase !== 'final-result') {
-        setBustedChoice(true);
-      }
+      // NOTE: the play-again/spectate choice is triggered in runRound's resolution
+      // (where we know for sure the game CONTINUES) — not here, so it never stacks
+      // on top of the win/lose final-result screen.
     }
     wasAliveRef.current = playerThug.alive;
     // Reset the refs/flags when starting a new game
@@ -309,6 +308,12 @@ export function Game() {
         const winnersOrNull = determineWinners(after, round);
 
         if (winnersOrNull === null) {
+          // Game CONTINUES. If the player was just caught (and hasn't already
+          // opted to spectate), pause and offer play-again/spectate.
+          const me = after.find((t) => t.isPlayer);
+          if (me && !me.alive && !spectating) {
+            setBustedChoice(true);
+          }
           const t3 = window.setTimeout(() => {
             setThugs((c2) => clearChoices(c2));
             setCopPath(undefined);
@@ -319,6 +324,9 @@ export function Game() {
           timeouts.current.push(t3);
           setPhase('round-result');
         } else {
+          // Game is OVER — the final-result screen handles it. Never show the
+          // busted-choice here (that was the win+spectate stacking bug).
+          setBustedChoice(false);
           finalizeGame(winnersOrNull, after);
         }
         return after;
